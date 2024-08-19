@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from api.views import VideoViewSet, ActivityViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet
+from api.views import VideoViewSet, ActivityViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet, ProductViewSet
 # API
 from rest_framework import routers
 # static files
@@ -32,6 +32,7 @@ router.register(r"articles", ArticleViewSet, basename="article")
 router.register(r"indexStories", IndexStoryViewSet, basename="indexStory")
 router.register(r"teachers", TeacherViewSet, basename="teacher")
 router.register(r"experiences", ExperienceViewSet, basename="experience")
+router.register(r"products", ProductViewSet, basename="product")
 
 
 urlpatterns = [

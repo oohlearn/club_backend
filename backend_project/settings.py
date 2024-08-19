@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "api",
     "admin_panel",
-    'corsheaders',
+    'corsheaders',  # 讓前端跟API串
     "rest_framework",
-    'taggit',
+    'taggit',  # 使用tag的第三方套件,
+    'ckeditor',  # 較多功能的文字編輯器
 ]
 
 

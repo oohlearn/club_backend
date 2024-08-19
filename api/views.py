@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from .models import Video, Activity, IndexStory, Album, Article, Experience, Teacher
+from .models import Video, Activity, IndexStory, Album, Article, Experience, Teacher, Product
 
 # Create your views here.
 from rest_framework import viewsets
-from .serializers import VideoSerializer, ActivitySerializer, IndexStorySerializer, AlbumSerializer, ArticleSerializer, ExperienceSerializer, TeacherSerializer
+from .serializers import VideoSerializer, ActivitySerializer, IndexStorySerializer, AlbumSerializer, ArticleSerializer, ExperienceSerializer, TeacherSerializer, ProductSerializer
 
 
 # 影片
@@ -71,3 +71,15 @@ class IndexStoryViewSet(viewsets.ModelViewSet):
 class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
+
+
+# 商品
+class ProductViewSet(viewsets.ModelViewSet):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        id = self.request.query_params.get('id')
+        if id is not None:
+            queryset = Product.objects.filter(id=id)
+        return queryset

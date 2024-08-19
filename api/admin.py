@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html  #修改日期用
 
-from .models import Video, Activity, Album, Article, Teacher, IndexStory, Experience
+from .models import Video, Activity, Album, Article, Teacher, IndexStory, Experience, Product
 
 # 修改後台的標題
 admin.site.site_header = "後臺管理系統"
@@ -42,6 +42,11 @@ class VideoAdmin(admin.ModelAdmin):
     list_display = ("title", "date", "place", "performer")
 
 
+class ProduceAdmin(admin.ModelAdmin):
+    list_display = ("title", "price", "discount_price", "state_tag", "on_sell", "on_discount")
+    list_editable = ("price", "discount_price", "state_tag", "on_sell", "on_discount")
+
+
 # Register your models here.
 admin.site.register(Video, VideoAdmin)
 admin.site.register(Article, ArticleAdmin)
@@ -50,3 +55,4 @@ admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(IndexStory)
 admin.site.register(Experience, ExperienceAdmin)
 admin.site.register(Album)
+admin.site.register(Product, ProduceAdmin)

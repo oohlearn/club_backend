@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Activity, Album, Teacher, Experience, IndexStory, Article
+from .models import Video, Activity, Album, Teacher, Experience, IndexStory, Article, Product
 from taggit.serializers import (TagListSerializerField, TaggitSerializer)
 
 
@@ -7,10 +7,11 @@ from taggit.serializers import (TagListSerializerField, TaggitSerializer)
 class VideoSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, use_url=True)
     # use_url=True時，序列化器將會返回圖片的URL
+    tags = TagListSerializerField()
 
     class Meta:
         model = Video
-        fields = ["id", "title", "date", "performer", "tags"
+        fields = ["id", "title", "date", "performer", "tags",
                   "place", "description", "url", "embed_url", "image"]
 
 
@@ -34,7 +35,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ["title", "date", "place", "poster", "program", "ticket", "description"]
+        fields = ["id", "title", "date", "place", "poster", "program", "ticket", "description"]
 
 
 # 老師
@@ -79,4 +80,17 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ["title", "date", "content", "tags", "article_img"]
+        fields = ["id", "title", "date", "content", "tags", "article_img"]
+
+
+# 商品
+class ProductSerializer(serializers.ModelSerializer):
+    image_index = serializers.ImageField(max_length=None, use_url=True)
+    image2 = serializers.ImageField(max_length=None, use_url=True)
+    image3 = serializers.ImageField(max_length=None, use_url=True)
+
+    class Meta:
+        model = Product
+        fields = ["id", "title", "price", "discount_price", "state_tag",
+                  "description", "on_sell", "on_discount", "image_index",
+                  "image2", "image3"]
