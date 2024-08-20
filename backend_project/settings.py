@@ -38,14 +38,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "api",
-    "admin_panel",
+    "information",
+    "shopping",
     'corsheaders',  # 讓前端跟API串
     "rest_framework",
     'taggit',  # 使用tag的第三方套件,
-    'django_ckeditor_5',  # 較多功能的文字編輯器
+    'ckeditor',  # 較多功能的文字編輯器
+    'tinymce'
 ]
 
+# settings.py
+TINYMCE_DEFAULT_CONFIG = {
+    'plugins': 'advlist autolink lists link charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime table paste code help wordcount',
+    'toolbar': 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+    'height': 500,  # 编辑器的高度
+    'width': "60%"   # 编辑器的宽度
+}
 
 
 MIDDLEWARE = [
