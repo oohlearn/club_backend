@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ShoppingConfig(AppConfig):
+class ActivityConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'shopping'
-    verbose_name = "購物商城"
+    name = 'activity'
+    verbose_name = "購票活動"

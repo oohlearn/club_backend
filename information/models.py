@@ -1,6 +1,5 @@
 from django.db import models
 from taggit.managers import TaggableManager
-from ckeditor.fields import RichTextField
 from tinymce.models import HTMLField
 
 
@@ -41,23 +40,7 @@ class Article(models.Model):
         verbose_name_plural = "文章列表"  # 自定義複數形式的名稱
 
 
-class Activity(models.Model):
-    title = models.CharField(max_length=500, verbose_name="活動/演出標題")
-    date = models.DateField(verbose_name="日期")
-    place = models.CharField(max_length=100, verbose_name="場地")
-    price_type = models.CharField(max_length=100, verbose_name="票價（例：200/300/500）")
-    poster = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="海報圖")
-    description = RichTextField(verbose_name="活動介紹", blank=True)
-    program = models.JSONField(default=list, verbose_name="演出內容（曲目）")
-    ticket = models.JSONField(default=list, verbose_name="票種清單")
-    seat_image = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="座位表")
 
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = "活動"  # 自定義單數形式的名稱
-        verbose_name_plural = "活動列表"  # 自定義複數形式的名稱
 
 
 class IndexStory(models.Model):
@@ -80,7 +63,7 @@ class IndexStory(models.Model):
 class Experience(models.Model):
     date = models.CharField(max_length=100, verbose_name="日期")
     experience = models.TextField(verbose_name="經歷標題")
-    description = RichTextField(verbose_name="經歷細節介紹", blank=True)
+    description = HTMLField(verbose_name="經歷細節介紹", blank=True)
     image = models.ImageField(upload_to="Images/experiences/", default="Image/None/Noimg.jpg", verbose_name="圖片")
 
     def __str__(self):
@@ -109,7 +92,7 @@ class Teacher(models.Model):
 class Album(models.Model):
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
-    description = RichTextField(verbose_name="相簿介紹", blank=True)
+    description = HTMLField(verbose_name="相簿介紹", blank=True)
     tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)
     indexImage = models.ImageField(verbose_name="相簿封面照", upload_to="Images/albums/", default="Image/None/Noimg.jpg")
 
@@ -125,5 +108,3 @@ class AlbumImage(models.Model):
     album = models.ForeignKey(Album, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="Images/albums/")
     is_index = models.BooleanField(default=False)
-
-

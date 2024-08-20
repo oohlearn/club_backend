@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from shopping.views import ProductViewSet
-from information.views import VideoViewSet, ActivityViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet
+from activity.views import ActivityViewSet
+from information.views import VideoViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet
 # API
 from rest_framework import routers
 # static files
@@ -24,5 +25,6 @@ router.register(r"products", ProductViewSet, basename="product")
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/information/', include(router.urls)),
-    path("api/shopping/", include(router.urls))
+    path("api/shopping/", include(router.urls)),
+    path("api/activity/", include(router.urls))
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls

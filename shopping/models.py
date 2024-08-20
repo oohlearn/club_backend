@@ -36,10 +36,15 @@ class Product(models.Model):
 
 
 # 購物車
+# TODO 訂單編號有問題，無法顯示
 class ProductCart(models.Model):
     products = models.JSONField()
     need_deliver_paid = models.BooleanField(default=True)
     total = models.IntegerField()
+
+    class Meta:
+        verbose_name = "購物車"
+        verbose_name_plural = "購物車列表"
 
 
 # 訂單
@@ -54,17 +59,3 @@ class Order(models.Model):
     products_order = models.JSONField(default=list, verbose_name="商品訂單", blank=True)
     order_info = models.JSONField(default=list, verbose_name="訂單資料", blank=True)
     order_state = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
-
-class Order(models.Model):
-    STATE_CHOICES = [
-       ("unpaid", "未付款"),
-       ("undelivered", "未出貨"),
-       ("finished", "已完成"),
-       ("problem",  "問題單")
-    ]
-    tickets_order = models.JSONField(default=list, verbose_name="票券訂單", blank=True)
-    products_order = models.JSONField(default=list, verbose_name="商品訂單", blank=True)
-    order_info = models.JSONField(default=list, verbose_name="訂單資料", blank=True)
-    order_state = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
-
-

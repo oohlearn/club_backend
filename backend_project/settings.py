@@ -40,11 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "information",
     "shopping",
+    "activity",
     'corsheaders',  # 讓前端跟API串
     "rest_framework",
     'taggit',  # 使用tag的第三方套件,
-    'ckeditor',  # 較多功能的文字編輯器
-    'tinymce'
+    'tinymce'  # 較多功能的文字編輯器
 ]
 
 # settings.py
