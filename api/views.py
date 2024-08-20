@@ -1,9 +1,14 @@
 from django.shortcuts import render
-from .models import Video, Activity, IndexStory, Album, Article, Experience, Teacher, Product
+from .models import (Video, Activity, IndexStory, Album, Article, Experience,
+                     Teacher, Product)
 
 # Create your views here.
 from rest_framework import viewsets
-from .serializers import VideoSerializer, ActivitySerializer, IndexStorySerializer, AlbumSerializer, ArticleSerializer, ExperienceSerializer, TeacherSerializer, ProductSerializer
+from .serializers import (VideoSerializer, ActivitySerializer,
+                          IndexStorySerializer, AlbumSerializer,
+                          ArticleSerializer, ExperienceSerializer,
+                          TeacherSerializer, ProductSerializer)
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # 影片
@@ -40,6 +45,35 @@ class ArticleViewSet(viewsets.ModelViewSet):
 # 相簿
 class AlbumViewSet(viewsets.ModelViewSet):
     serializer_class = AlbumSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def create(self, request, *args, **kwargs):
+        images = request.FILES.getlist('images')
+        album_data = request.data
+
+        album_serializer = self.get_serializer(data=album_data)
+        album_serializer.is_valid(raise_exception=True)
+        album = album_serializer.save()
+
+        for image in images:
+            AlbumImage.objects.create(album=album, image=image)
+
+        return Response(album_serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        images = request.FILES.getlist('images')
+        instance = self.get_object()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if images:
+            instance.images.all().delete()  # 刪除舊圖片
+            for image in images:
+                AlbumImage.objects.create(album=instance, image=image)
+
+        return Response(serializer.data)
 
     def get_queryset(self):
         queryset = Album.objects.all()
@@ -76,10 +110,3 @@ class ExperienceViewSet(viewsets.ModelViewSet):
 # 商品
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        id = self.request.query_params.get('id')
-        if id is not None:
-            queryset = Product.objects.filter(id=id)
-        return queryset

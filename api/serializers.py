@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Video, Activity, Album, Teacher, Experience, IndexStory, Article, Product
+from .models import (Video, Activity, Album, AlbumImage, Teacher, Experience,
+                     IndexStory, Article, Product, Order)
 from taggit.serializers import (TagListSerializerField, TaggitSerializer)
 
 
@@ -47,16 +48,6 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# 相簿
-class AlbumSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(max_length=None, use_url=True)
-    tags = TagListSerializerField()
-
-    class Meta:
-        model = Album
-        fields = '__all__'
-
-
 # 封面故事
 class IndexStorySerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, use_url=True)
@@ -83,14 +74,46 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "date", "content", "tags", "article_img"]
 
 
+# 相簿
+class AlbumImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlbumImage
+        fields = ['id', 'image', 'is_index']
+
+
+class AlbumSerializer(serializers.ModelSerializer):
+    tags = TagListSerializerField()
+    images = AlbumImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Album
+        fields = ["title", "date", "description", "tags", "indexImage", "images"]
+
+
 # 商品
 class ProductSerializer(serializers.ModelSerializer):
     image_index = serializers.ImageField(max_length=None, use_url=True)
-    image2 = serializers.ImageField(max_length=None, use_url=True)
-    image3 = serializers.ImageField(max_length=None, use_url=True)
+    image_2 = serializers.ImageField(max_length=None, use_url=True)
+    image_3 = serializers.ImageField(max_length=None, use_url=True)
+    image_4 = serializers.ImageField(max_length=None, use_url=True)
+    image_5 = serializers.ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Product
         fields = ["id", "title", "price", "discount_price", "state_tag",
                   "description", "on_sell", "on_discount", "image_index",
-                  "image2", "image3"]
+                  "image_2", "image_3", "image_4", "image_5"]
+
+
+# 訂單
+   
+# 票
+class TicketOrderSerializer(serializers.Serializer):
+    
+    ticket = serializers.CharField(max_length=500)
+    price = serializers.IntegerField()
+    description = serializers.CharField(max_length=1000)
+# 商品
+# 購買人資訊
+# class OrderSerializer(serializers.ModelSerializer):
+    

@@ -1,6 +1,7 @@
 from django.db import models
 from taggit.managers import TaggableManager
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
+
 
 # Create your models here.
 
@@ -27,7 +28,7 @@ class Video(models.Model):
 class Article(models.Model):
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
-    content = RichTextField(verbose_name="文章內容", blank=True)
+    content = CKEditor5Field(verbose_name="文章內容", blank=True)
     tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)  # 添加tag管理器，並自定義說明文字
     article_img = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg", verbose_name="文章代表圖片")
 
@@ -45,9 +46,10 @@ class Activity(models.Model):
     place = models.CharField(max_length=100, verbose_name="場地")
     price_type = models.CharField(max_length=100, verbose_name="票價（例：200/300/500）")
     poster = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="海報圖")
-    description = RichTextField(verbose_name="活動介紹", blank=True)
+    description = CKEditor5Field(verbose_name="活動介紹", blank=True)
     program = models.JSONField(default=list, verbose_name="演出內容（曲目）")
     ticket = models.JSONField(default=list, verbose_name="票種清單")
+    seat_image = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="座位表")
 
     def __str__(self):
         return self.title
@@ -77,8 +79,8 @@ class IndexStory(models.Model):
 class Experience(models.Model):
     date = models.CharField(max_length=100, verbose_name="日期")
     experience = models.TextField(verbose_name="經歷標題")
-    description = RichTextField(verbose_name="經歷細節介紹", blank=True)
-    image = models.ImageField(upload_to="Images/index_stories/", default="Image/None/Noimg.jpg", verbose_name="圖片")
+    description = CKEditor5Field(verbose_name="經歷細節介紹", blank=True)
+    image = models.ImageField(upload_to="Images/experiences/", default="Image/None/Noimg.jpg", verbose_name="圖片")
 
     def __str__(self):
         return self.experience
@@ -106,7 +108,7 @@ class Teacher(models.Model):
 class Album(models.Model):
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
-    description = RichTextField(verbose_name="相簿介紹", blank=True)
+    description = CKEditor5Field(verbose_name="相簿介紹", blank=True)
     tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)
     indexImage = models.ImageField(verbose_name="相簿封面照", upload_to="Images/albums/", default="Image/None/Noimg.jpg")
 
@@ -118,18 +120,33 @@ class Album(models.Model):
         verbose_name_plural = "相簿列表"  # 自定義複數形式的名稱
 
 
-# TODO 商品相關
+class AlbumImage(models.Model):
+    album = models.ForeignKey(Album, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="Images/albums/")
+    is_index = models.BooleanField(default=False)
+
+
+# 商品相關
 class Product(models.Model):
+    STATE_CHOICES = [
+        ("on_discount", "特價中"),
+        ("not_sell", "缺貨中"),
+        ("sold_out", "完售"),
+        ("new", "新上市")
+    ]
+
     title = models.CharField(max_length=500, verbose_name="商品名稱")
     price = models.IntegerField(verbose_name="原始價格")
     discount_price = models.IntegerField(verbose_name="特價價格")
-    description = RichTextField(verbose_name="商品敘述", blank=True)
-    state_tag = models.CharField(max_length=100, blank=True, verbose_name="商品狀態", help_text="例：特價中、缺貨、新上架")  # 顯示在圖片上的特殊標記，特價中、缺貨
+    description = CKEditor5Field(verbose_name="商品敘述", blank=True)
+    state_tag = models.CharField(max_length=100, blank=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
     on_discount = models.BooleanField(default=False, verbose_name="優惠中", help_text="勾選後，顯示特價價格")
-    image_index = models.ImageField(upload_to="Images/products/", verbose_name="商品照(兼列表展示照)", default="Image/None/Noimg.jpg")
-    image2 = models.ImageField(upload_to="Images/products/", verbose_name="商品照2", default="Image/None/Noimg.jpg")
-    image3 = models.ImageField(upload_to="Images/products/", verbose_name="商品照3", default="Image/None/Noimg.jpg")
+    image_index = models.ImageField(upload_to="Images/products/", verbose_name="商品照1(兼列表展示照)", default="Image/None/Noimg.jpg")
+    image_2 = models.ImageField(upload_to="Images/products/", verbose_name="商品照2", default="Image/None/Noimg.jpg")
+    image_3 = models.ImageField(upload_to="Images/products/", verbose_name="商品照3", default="Image/None/Noimg.jpg")
+    image_4 = models.ImageField(upload_to="Images/products/", verbose_name="商品照4", default="Image/None/Noimg.jpg")
+    image_5 = models.ImageField(upload_to="Images/products/", verbose_name="商品照5", default="Image/None/Noimg.jpg")
 
     def __str__(self):
         return self.title
@@ -137,3 +154,17 @@ class Product(models.Model):
     class Meta:
         verbose_name = "商品"
         verbose_name_plural = "商品列表"
+
+
+# 訂單
+class Order(models.Model):
+    STATE_CHOICES = [
+       ("unpaid", "未付款"),
+       ("undelivered", "未出貨"),
+       ("finished", "已完成"),
+       ("problem",  "問題單")
+    ]
+    tickets_order = models.JSONField(default=list, verbose_name="票券訂單", blank=True)
+    products_order = models.JSONField(default=list, verbose_name="商品訂單", blank=True)
+    order_info = models.JSONField(default=list, verbose_name="訂單資料", blank=True)
+    order_state = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
