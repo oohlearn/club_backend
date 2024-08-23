@@ -1,25 +1,41 @@
 from django.shortcuts import render
-from .models import (Video, IndexStory, Album, Article, Experience, Teacher)
+
+from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
-from rest_framework import viewsets
+from .models import (Video, IndexStory, Album, Article, Experience, Teacher)
 from .serializers import (VideoSerializer,
                           IndexStorySerializer, AlbumSerializer,
                           ArticleSerializer, ExperienceSerializer,
                           TeacherSerializer)
-from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # 影片
+class VideoListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class VideoViewSet(viewsets.ModelViewSet):
-    queryset = Video.objects.all()
+    queryset = Video.objects.all().order_by("-date")
     serializer_class = VideoSerializer
+    pagination = VideoListPagination
 
 
 # 文章
+class ArticleListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    pagination = ArticleListPagination
 
     def get_queryset(self):
         queryset = Article.objects.all()
@@ -30,9 +46,16 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
 
 # 相簿
+class AlbumListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class AlbumViewSet(viewsets.ModelViewSet):
     serializer_class = AlbumSerializer
     parser_classes = (MultiPartParser, FormParser)
+    pagination = AlbumListPagination
 
     def create(self, request, *args, **kwargs):
         images = request.FILES.getlist('images')
@@ -89,6 +112,13 @@ class IndexStoryViewSet(viewsets.ModelViewSet):
 
 
 # 經歷
+class ExperienceListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
+    pagination = ExperienceListPagination

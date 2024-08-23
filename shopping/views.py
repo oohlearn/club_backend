@@ -1,14 +1,23 @@
 from django.shortcuts import render
-from .serializers import CartProductsSerializer, ProductSerializer
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
+
+from .serializers import CartProductsSerializer, ProductSerializer
 from .models import Product, ProductCart
 
 
-# Create your views here.
 # 商品
+# 分頁
+class ProductListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
+    pagination = ProductListPagination
 
     def get_queryset(self):
         queryset = Product.objects.all()

@@ -14,6 +14,7 @@ class Activity(models.Model):
     program = models.JSONField(default=list, verbose_name="演出內容（曲目）")
     ticket = models.JSONField(default=list, verbose_name="票種清單")
     seat_image = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="座位表")
+    on_sell = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
