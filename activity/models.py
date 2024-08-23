@@ -1,10 +1,12 @@
 from django.db import models
 from taggit.managers import TaggableManager
 from tinymce.models import HTMLField
+import uuid  # 生成隨機ID
 
 
 # Create your models here.
 class Activity(models.Model):
+    id = models.CharField(primary_key=True, editable=False, default=uuid.uuid4, max_length=100)
     title = models.CharField(max_length=500, verbose_name="活動/演出標題")
     date = models.DateField(verbose_name="日期")
     place = models.CharField(max_length=100, verbose_name="場地")

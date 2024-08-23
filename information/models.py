@@ -1,12 +1,11 @@
 from django.db import models
 from taggit.managers import TaggableManager
 from tinymce.models import HTMLField
-
-
-# Create your models here.
+import uuid  # 生成隨機ID
 
 
 class Video(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=200, verbose_name="標題")
     date = models.DateField(verbose_name="日期")
     performer = models.CharField(max_length=100, verbose_name="演出者")
@@ -26,6 +25,7 @@ class Video(models.Model):
 
 
 class Article(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
     content = HTMLField(verbose_name="文章內容", blank=True)
@@ -105,6 +105,7 @@ class Album(models.Model):
 
 
 class AlbumImage(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     album = models.ForeignKey(Album, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="Images/albums/")
     is_index = models.BooleanField(default=False)

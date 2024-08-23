@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.pagination import PageNumberPagination
 
 from .serializers import CartProductsSerializer, ProductSerializer
-from .models import Product, ProductCart
+from .models import Product, Cart
 
 
 # 商品
