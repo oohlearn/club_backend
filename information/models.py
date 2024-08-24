@@ -1,7 +1,13 @@
 from django.db import models
-from taggit.managers import TaggableManager
 from tinymce.models import HTMLField
 import uuid  # 生成隨機ID
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Video(models.Model):
@@ -14,7 +20,7 @@ class Video(models.Model):
     url = models.CharField(max_length=500, verbose_name="youtube網址")
     embed_url = models.CharField(max_length=1000, blank=True, verbose_name="youtube內嵌網址(請點選youtube分享)")
     image = models.ImageField(upload_to="Images/videos/", default="Image/None/Noimg.jpg", verbose_name="封面照")
-    tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)
+
 
     def __str__(self):
         return self.title
@@ -29,8 +35,20 @@ class Article(models.Model):
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
     content = HTMLField(verbose_name="文章內容", blank=True)
-    tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)  # 添加tag管理器，並自定義說明文字
     article_img = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg", verbose_name="文章代表圖片")
+    tags_input = models.CharField(max_length=300, blank=True)
+    tags = models.ManyToManyField(Tag, related_name="articles", blank=True)
+
+    def save(self, *args, **kwargs):
+        # 在保存之前處理 tags_input
+        if self.tags_input:
+            tag_names = [name.strip() for name in self.tags_input.split(',')]
+            tags = []
+            for name in tag_names:
+                tag, created = Tag.objects.get_or_create(name=name)
+                tags.append(tag)
+            self.tags.set(tags)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -38,9 +56,6 @@ class Article(models.Model):
     class Meta:
         verbose_name = "文章"  # 自定義單數形式的名稱
         verbose_name_plural = "文章列表"  # 自定義複數形式的名稱
-
-
-
 
 
 class IndexStory(models.Model):
@@ -93,8 +108,19 @@ class Album(models.Model):
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
     description = HTMLField(verbose_name="相簿介紹", blank=True)
-    tags = TaggableManager(help_text="請以逗號分隔標籤", blank=True)
     indexImage = models.ImageField(verbose_name="相簿封面照", upload_to="Images/albums/", default="Image/None/Noimg.jpg")
+    tags_input = models.CharField(max_length=300, blank=True, help_text="請以逗號分隔標籤")
+
+    def save(self, *args, **kwargs):
+        # 在保存之前處理 tags_input
+        if self.tags_input:
+            tag_names = [name.strip() for name in self.tags_input.split(',')]
+            tags = []
+            for name in tag_names:
+                tag, created = Tag.objects.get_or_create(name=name)
+                tags.append(tag)
+            self.tags.set(tags)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -35,7 +36,18 @@ class ArticleListPagination(PageNumberPagination):
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
-    pagination = ArticleListPagination
+    pagination_class = ArticleListPagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = {item["id"]: item for item in data}
+
+        return Response({
+            "articles": formatted_data
+        }, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         queryset = Article.objects.all()
