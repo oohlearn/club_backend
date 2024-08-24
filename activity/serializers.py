@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Activity
 
 
-# JSON格式的欄位特別處理：活動的票券和曲目、文章和相簿的tag
+# JSON格式的欄位特別處理：活動的票券和曲目
 class ProgramSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=500)
     composer = serializers.CharField(max_length=100)
@@ -22,3 +22,9 @@ class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = ["id", "title", "date", "place", "poster", "program", "ticket", "description"]
+
+
+class ProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ['title', 'composer']

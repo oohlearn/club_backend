@@ -2,11 +2,24 @@ from django.db import models
 from tinymce.models import HTMLField
 from activity.models import Activity
 import uuid  # 生成隨機ID
+from shortuuidfield import ShortUUIDField
+
 
 # Create your models here.
 
 
 # 商品相關
+# 多張商品圖
+class Photo(models.Model):
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    product = models.ForeignKey('Product', related_name='photos', on_delete=models.CASCADE, verbose_name="商品")
+    image_data = models.ImageField(verbose_name="照片", upload_to="Images/albums/")
+    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
+
+    def __str__(self):
+        return self.description or ""
+
+
 class Product(models.Model):
     STATE_CHOICES = [
         ("on_discount", "特價中"),
@@ -24,10 +37,6 @@ class Product(models.Model):
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
     on_discount = models.BooleanField(default=False, verbose_name="優惠中", help_text="勾選後，顯示特價價格")
     image_index = models.ImageField(upload_to="Images/products/", verbose_name="商品照1(兼列表展示照)", default="Image/None/Noimg.jpg")
-    image_2 = models.ImageField(upload_to="Images/products/", verbose_name="商品照2", default="Image/None/Noimg.jpg")
-    image_3 = models.ImageField(upload_to="Images/products/", verbose_name="商品照3", default="Image/None/Noimg.jpg")
-    image_4 = models.ImageField(upload_to="Images/products/", verbose_name="商品照4", default="Image/None/Noimg.jpg")
-    image_5 = models.ImageField(upload_to="Images/products/", verbose_name="商品照5", default="Image/None/Noimg.jpg")
 
     def __str__(self):
         return self.title

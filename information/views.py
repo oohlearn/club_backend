@@ -23,7 +23,18 @@ class VideoListPagination(PageNumberPagination):
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all().order_by("-date")
     serializer_class = VideoSerializer
-    pagination = VideoListPagination
+    pagination_class = VideoListPagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = {item["title"]: item for item in data}
+
+        return Response({
+            "articles": formatted_data
+        }, status=status.HTTP_200_OK)
 
 
 # 文章
@@ -43,7 +54,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["id"]: item for item in data}
+        formatted_data = {item["title"]: item for item in data}
 
         return Response({
             "articles": formatted_data
@@ -85,7 +96,6 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         images = request.FILES.getlist('images')
         instance = self.get_object()
-
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -110,10 +120,32 @@ class TeacherViewSet(viewsets.ModelViewSet):
     serializer_class = TeacherSerializer
     queryset = Teacher.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = {item["name"]: item for item in data}
+
+        return Response({
+            "teachers": formatted_data
+        }, status=status.HTTP_200_OK)
+
 
 # 封面故事
 class IndexStoryViewSet(viewsets.ModelViewSet):
     serializer_class = IndexStorySerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = {item["title"]: item for item in data}
+
+        return Response({
+            "indexStories": formatted_data
+        }, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         queryset = IndexStory.objects.all()
@@ -134,3 +166,14 @@ class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
     pagination = ExperienceListPagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = {item["experience"]: item for item in data}
+
+        return Response({
+            "experiences": formatted_data
+        }, status=status.HTTP_200_OK)

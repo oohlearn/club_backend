@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import (Video, Album, AlbumImage, Teacher, Experience,
-                     IndexStory, Article, Tag)
+from .models import (Video, Album, Teacher, Experience,
+                     IndexStory, Article, Tag, Photo)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -13,15 +13,10 @@ class TagSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, use_url=True)
     # use_url=True時，序列化器將會返回圖片的URL
-    tags = serializers.SerializerMethodField()  # 使用 SerializerMethodField 自定義 tags 字段
-
-    def get_tags(self, obj):
-        # 從 Article 實例中獲取關聯的 Tag 對象，並返回它們的名稱列表
-        return [tag.name for tag in obj.tags.all()]
 
     class Meta:
         model = Video
-        fields = ["id", "title", "date", "performer", "tags",
+        fields = ["id", "title", "date", "performer",
                   "place", "description", "url", "embed_url", "image"]
 
 
@@ -54,7 +49,6 @@ class ExperienceSerializer(serializers.ModelSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     article_img = serializers.ImageField(max_length=None, use_url=True)
     tags = serializers.SerializerMethodField()  # 使用 SerializerMethodField 自定義 tags 字段
-    # tags = TagSerializer(many=True)  # 使用 TagSerializer 來序列化 tags 字段
 
     def get_tags(self, obj):
         # 從 Article 實例中獲取關聯的 Tag 對象，並返回它們的名稱列表
@@ -66,22 +60,24 @@ class ArticleSerializer(serializers.ModelSerializer):
 
 
 # 相簿
-class AlbumImageSerializer(serializers.ModelSerializer):
+class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AlbumImage
-        fields = ['id', 'image', 'is_index']
+        model = Photo
+        fields = ['image', 'description']
 
 
 class AlbumSerializer(serializers.ModelSerializer):
-    images = AlbumImageSerializer(many=True, read_only=True)
+    photos = PhotoSerializer(many=True, required=False)
+    
+    # tags = serializers.SerializerMethodField()  # 使用 SerializerMethodField 自定義 tags 字段
 
-    def get_tags(self, obj):
-        # 從 Article 實例中獲取關聯的 Tag 對象，並返回它們的名稱列表
-        return [tag.name for tag in obj.tags.all()]
+    # def get_tags(self, obj):
+    #     # 從 Article 實例中獲取關聯的 Tag 對象，並返回它們的名稱列表
+    #     return [tag.name for tag in obj.tags.all()]
 
     class Meta:
         model = Album
-        fields = ["title", "date", "description", "tags", "indexImage", "images"]
+        fields = ["title", "date", "description", "indexImage", "photos"]
 
 
 # 票

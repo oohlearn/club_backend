@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-# from shopping.views import ProductViewSet
+from shopping.views import ProductViewSet
 from activity.views import ActivityViewSet
 from information.views import VideoViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet
 # API
@@ -19,12 +19,12 @@ router.register(r"articles", ArticleViewSet, basename="article")
 router.register(r"index_stories", IndexStoryViewSet, basename="indexStory")
 router.register(r"teachers", TeacherViewSet, basename="teacher")
 router.register(r"experiences", ExperienceViewSet, basename="experience")
-# router.register(r"products", ProductViewSet, basename="product")
+router.register(r"products", ProductViewSet, basename="product")
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/information/', include(router.urls)),
-    # path("api/shopping/", include(router.urls)),
+    path("api/shopping/", include(router.urls)),
     path("api/activity/", include(router.urls))
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls

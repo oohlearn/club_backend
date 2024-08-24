@@ -1,20 +1,23 @@
-# from rest_framework import serializers
-# from .models import ProductCart, Product
+from rest_framework import serializers
+from .models import Product, Photo
 
 
-# # 商品
-# class ProductSerializer(serializers.ModelSerializer):
-#     image_index = serializers.ImageField(max_length=None, use_url=True)
-#     image_2 = serializers.ImageField(max_length=None, use_url=True)
-#     image_3 = serializers.ImageField(max_length=None, use_url=True)
-#     image_4 = serializers.ImageField(max_length=None, use_url=True)
-#     image_5 = serializers.ImageField(max_length=None, use_url=True)
+# 商品
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photo
+        fields = ['image_data', 'description']
 
-#     class Meta:
-#         model = Product
-#         fields = ["id", "title", "price", "discount_price", "state_tag",
-#                   "description", "on_sell", "on_discount", "image_index",
-#                   "image_2", "image_3", "image_4", "image_5"]
+
+class ProductSerializer(serializers.ModelSerializer):
+    image_index = serializers.ImageField(max_length=None, use_url=True)
+    photos = PhotoSerializer(many=True, required=False)
+
+    class Meta:
+        model = Product
+        fields = ["id", "title", "price", "discount_price", "state_tag",
+                  "description", "on_sell", "on_discount", "image_index",
+                  "photos"]
 
 
 # # 購物車

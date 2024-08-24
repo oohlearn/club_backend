@@ -1,6 +1,7 @@
 from django.db import models
 from tinymce.models import HTMLField
 import uuid  # 生成隨機ID
+from shortuuidfield import ShortUUIDField
 
 
 class Tag(models.Model):
@@ -10,8 +11,17 @@ class Tag(models.Model):
         return self.name
 
 
+class Image(models.Model):
+    image = models.ImageField(upload_to='images/')
+    # 這個字段將用於存儲圖片
+    # 可以選擇添加其他字段來描述圖片
+
+    def __str__(self):
+        return f"Image {self.id}"
+
+
 class Video(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=200, verbose_name="標題")
     date = models.DateField(verbose_name="日期")
     performer = models.CharField(max_length=100, verbose_name="演出者")
@@ -31,7 +41,7 @@ class Video(models.Model):
 
 
 class Article(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
     content = HTMLField(verbose_name="文章內容", blank=True)
@@ -75,8 +85,9 @@ class IndexStory(models.Model):
         verbose_name_plural = "封面故事列表"  # 自定義複數形式的名稱
 
 
+# TODO 修改日期格式
 class Experience(models.Model):
-    date = models.CharField(max_length=100, verbose_name="日期")
+    date = models.CharField(max_length=100, verbose_name="日期", help_text="格式：113年8月")
     experience = models.TextField(verbose_name="經歷標題")
     description = HTMLField(verbose_name="經歷細節介紹", blank=True)
     image = models.ImageField(upload_to="Images/experiences/", default="Image/None/Noimg.jpg", verbose_name="圖片")
@@ -104,23 +115,23 @@ class Teacher(models.Model):
 
 
 # TODO 待解決放入多張照片
+# TODO tags
+class Photo(models.Model):
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
+    image = models.ImageField(verbose_name="照片", upload_to="Images/albums/")
+    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
+
+    def __str__(self):
+        return self.description
+
+
 class Album(models.Model):
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
     description = HTMLField(verbose_name="相簿介紹", blank=True)
     indexImage = models.ImageField(verbose_name="相簿封面照", upload_to="Images/albums/", default="Image/None/Noimg.jpg")
-    tags_input = models.CharField(max_length=300, blank=True, help_text="請以逗號分隔標籤")
-
-    def save(self, *args, **kwargs):
-        # 在保存之前處理 tags_input
-        if self.tags_input:
-            tag_names = [name.strip() for name in self.tags_input.split(',')]
-            tags = []
-            for name in tag_names:
-                tag, created = Tag.objects.get_or_create(name=name)
-                tags.append(tag)
-            self.tags.set(tags)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -128,10 +139,3 @@ class Album(models.Model):
     class Meta:
         verbose_name = "相簿"  # 自定義單數形式的名稱
         verbose_name_plural = "相簿列表"  # 自定義複數形式的名稱
-
-
-class AlbumImage(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    album = models.ForeignKey(Album, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="Images/albums/")
-    is_index = models.BooleanField(default=False)
