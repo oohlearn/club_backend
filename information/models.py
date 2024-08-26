@@ -125,8 +125,8 @@ class Teacher(models.Model):
 
 class Conductor(models.Model):
     name = models.CharField(max_length=500, verbose_name="指揮姓名")
-    description = models.TextField(blank=True, verbose_name="指揮簡介")
-    experiences = models.TextField(blank=True, verbose_name="指揮經歷")
+    description = HTMLField(blank=True, verbose_name="指揮簡介")
+    experiences = HTMLField(blank=True, verbose_name="指揮經歷")
     image = models.ImageField(upload_to="Images/teachers/", default="Image/None/Noimg.jpg", verbose_name="照片")
 
     def __str__(self):
@@ -136,12 +136,13 @@ class Conductor(models.Model):
         verbose_name = "指揮"  # 自定義單數形式的名稱
         verbose_name_plural = "指揮列表"  # 自定義複數形式的名稱
 
+
 # TODO 待解決一次放入多張照片
 # TODO tags
 class Photo(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
-    image = models.ImageField(verbose_name="照片", upload_to="Images/albums/")
+    albumImage = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
     description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
 
     def __str__(self):
@@ -161,3 +162,18 @@ class Album(models.Model):
     class Meta:
         verbose_name = "相簿"  # 自定義單數形式的名稱
         verbose_name_plural = "相簿列表"  # 自定義複數形式的名稱
+
+
+class Introduction(models.Model):
+    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    date = models.DateField(verbose_name="更新日期")
+    description = HTMLField(verbose_name="介紹內容", blank=True)
+    indexImage = models.ImageField(verbose_name="團照", upload_to="Images/intro/", default="Image/None/Noimg.jpg")
+    image_2 = models.ImageField(verbose_name="LOGO", upload_to="Images/intro/", default="Image/None/Noimg.jpg")
+
+    def __str__(self):
+        return str(self.date)
+
+    class Meta:
+        verbose_name = "樂團介紹"  # 自定義單數形式的名稱
+        verbose_name_plural = "樂團介紹"  # 自定義複數形式的名稱

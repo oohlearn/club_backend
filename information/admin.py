@@ -4,12 +4,18 @@ from .forms import ArticleAdminForm
 from django import forms
 
 from .models import (Tag, Video, Album, Article, Conductor,
-                     IndexStory, Experience, Photo, Teacher)
+                     IndexStory, Experience, Photo, Teacher, Introduction)
 
 # 修改後台的標題
 admin.site.site_header = "後臺管理系統"
 admin.site.site_title = "樂團官網管理後台"
 admin.site.index_title = "樂團官網資料管理系統"
+
+
+class PhotoInline(admin.TabularInline):
+    model = Photo
+    extra = 1  # 初始显示的空白条目数量
+    fields = ['albumImage', 'description', 'introImage']  # 控制显示字段的顺序
 
 
 class ArticleAdmin(admin.ModelAdmin):
@@ -47,19 +53,19 @@ class ExperienceAdmin(admin.ModelAdmin):
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ("group", "name")
 
+
 @admin.register(Conductor)
 class ConductorAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+@admin.register(Introduction)
+class IntroductionAdmin(admin.ModelAdmin):
+    list_display = ["date"]
+
+
 class VideoAdmin(admin.ModelAdmin):
     list_display = ("title", "date", "place", "performer")
-
-
-class PhotoInline(admin.TabularInline):
-    model = Photo
-    extra = 1  # 初始显示的空白条目数量
-    fields = ['image', 'description']  # 控制显示字段的顺序
 
 
 @admin.register(Album)
@@ -71,7 +77,7 @@ class AlbumAdmin(admin.ModelAdmin):
 
 @admin.register(Photo)
 class PhotoAdmin(admin.ModelAdmin):
-    list_display = ['album', 'image', 'description']
+    list_display = ['description']
     search_fields = ['description']
 
 
@@ -82,4 +88,3 @@ admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(IndexStory)
 admin.site.register(Experience, ExperienceAdmin)
 admin.site.register(Tag)
-

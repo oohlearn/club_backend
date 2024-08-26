@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (Video, Album, Conductor, Experience,
+from .models import (Video, Album, Conductor, Experience, Introduction,
                      IndexStory, Article, Tag, Photo, Teacher)
 
 
@@ -70,6 +70,8 @@ class ArticleSerializer(serializers.ModelSerializer):
 
 # 相簿
 class PhotoSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, use_url=True)
+
     class Meta:
         model = Photo
         fields = ['image', 'description']
@@ -77,7 +79,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 
 class AlbumSerializer(serializers.ModelSerializer):
     photos = PhotoSerializer(many=True, required=False)
-    
+
     # tags = serializers.SerializerMethodField()  # 使用 SerializerMethodField 自定義 tags 字段
 
     # def get_tags(self, obj):
@@ -89,17 +91,10 @@ class AlbumSerializer(serializers.ModelSerializer):
         fields = ["title", "date", "description", "indexImage", "photos"]
 
 
-# 票
-# class TicketOrderSerializer(serializers.Serializer):
-#     STATE_CHOICES = [
-#        ("diy", "自行選位"),
-#        ("com", "電腦配位"),
-#     ]
-#     ticket_type = serializers.CharField(max_length=500)
-#     price = serializers.IntegerField()
-#     amount = serializers.IntegerField()
-#     seats = serializers.CharField(max_length=800)
+# TODO 更改結構
+# 樂團介紹
+class IntroductionSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = Product
-#         fields = ["id", ]
+    class Meta:
+        model = Introduction
+        fields = ["date", "description", "indexImage", "image_2"]

@@ -4,7 +4,7 @@ from shopping.views import ProductViewSet
 from activity.views import ActivityViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
                                IndexStoryViewSet, TeacherViewSet,
-                               ExperienceViewSet, ConductorViewSet)
+                               ExperienceViewSet, ConductorViewSet, IntroductionViewSet)
 # API
 from rest_framework import routers
 # static files
@@ -23,7 +23,7 @@ router.register(r"teachers", TeacherViewSet, basename="teacher")
 router.register(r"experiences", ExperienceViewSet, basename="experience")
 router.register(r"products", ProductViewSet, basename="product")
 router.register(r"conductors", ConductorViewSet, basename="conductor")
-
+router.register(r"introduction", IntroductionViewSet, basename="introduction")
 
 
 urlpatterns = [

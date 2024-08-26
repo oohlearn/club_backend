@@ -28,3 +28,20 @@ class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = ['title', 'composer']
+
+
+# TODO尚未完成票券部分
+# 票
+# class TicketOrderSerializer(serializers.Serializer):
+#     STATE_CHOICES = [
+#        ("diy", "自行選位"),
+#        ("com", "電腦配位"),
+#     ]
+#     ticket_type = serializers.CharField(max_length=500)
+#     price = serializers.IntegerField()
+#     amount = serializers.IntegerField()
+#     seats = serializers.CharField(max_length=800)
+
+#     class Meta:
+#         model = Product
+#         fields = ["id", ]
