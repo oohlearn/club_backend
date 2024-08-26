@@ -1,8 +1,10 @@
 from django.contrib import admin
 
 from .forms import ArticleAdminForm
+from django import forms
 
-from .models import Tag, Video, Album, Article, Teacher, IndexStory, Experience, Photo
+from .models import (Tag, Video, Album, Article, Conductor,
+                     IndexStory, Experience, Photo, Teacher)
 
 # 修改後台的標題
 admin.site.site_header = "後臺管理系統"
@@ -27,12 +29,27 @@ class ArticleAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class ExperienceForm(forms.ModelForm):
+    class Meta:
+        model = Experience
+        fields = '__all__'
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'})
+        }
+
+
 class ExperienceAdmin(admin.ModelAdmin):
-    list_display = ("date", "experience")
+    form = ExperienceForm
+    list_display = ('date', 'experience')
+    ordering = ('-date',)
 
 
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ("group", "name")
+
+@admin.register(Conductor)
+class ConductorAdmin(admin.ModelAdmin):
+    list_display = ["name"]
 
 
 class VideoAdmin(admin.ModelAdmin):
@@ -58,7 +75,6 @@ class PhotoAdmin(admin.ModelAdmin):
     search_fields = ['description']
 
 
-
 # Register your models here.
 admin.site.register(Video, VideoAdmin)
 admin.site.register(Article, ArticleAdmin)
@@ -66,3 +82,4 @@ admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(IndexStory)
 admin.site.register(Experience, ExperienceAdmin)
 admin.site.register(Tag)
+

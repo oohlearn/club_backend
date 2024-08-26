@@ -2,7 +2,9 @@ from django.contrib import admin
 from django.urls import path, include
 from shopping.views import ProductViewSet
 from activity.views import ActivityViewSet
-from information.views import VideoViewSet, AlbumViewSet, ArticleViewSet, IndexStoryViewSet, TeacherViewSet, ExperienceViewSet
+from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
+                               IndexStoryViewSet, TeacherViewSet,
+                               ExperienceViewSet, ConductorViewSet)
 # API
 from rest_framework import routers
 # static files
@@ -20,6 +22,8 @@ router.register(r"index_stories", IndexStoryViewSet, basename="indexStory")
 router.register(r"teachers", TeacherViewSet, basename="teacher")
 router.register(r"experiences", ExperienceViewSet, basename="experience")
 router.register(r"products", ProductViewSet, basename="product")
+router.register(r"conductors", ConductorViewSet, basename="conductor")
+
 
 
 urlpatterns = [

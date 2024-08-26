@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import (Video, Album, Teacher, Experience,
-                     IndexStory, Article, Tag, Photo)
+from .models import (Video, Album, Conductor, Experience,
+                     IndexStory, Article, Tag, Photo, Teacher)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -26,6 +26,15 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
+        fields = '__all__'
+
+
+# 指揮
+class ConductorSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, use_url=True)
+
+    class Meta:
+        model = Conductor
         fields = '__all__'
 
 

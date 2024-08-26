@@ -25,12 +25,12 @@ class ActivityViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["title"]: item for item in data}
+        formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
             "articles": formatted_data
         }, status=status.HTTP_200_OK)
-    
+
     def get_queryset(self):
         queryset = Activity.objects.all()
         id = self.request.query_params.get('id')

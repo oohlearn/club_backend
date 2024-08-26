@@ -6,11 +6,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
-from .models import (Video, IndexStory, Album, Article, Experience, Teacher)
+from .models import (Video, IndexStory, Album, Article, Experience, Conductor,
+                     Teacher)
 from .serializers import (VideoSerializer,
                           IndexStorySerializer, AlbumSerializer,
                           ArticleSerializer, ExperienceSerializer,
-                          TeacherSerializer)
+                          TeacherSerializer, ConductorSerializer)
 
 
 # 影片
@@ -30,10 +31,11 @@ class VideoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["title"]: item for item in data}
+        # formatted_data = [{ item["title"]: item for item in data }]
+        formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
-            "articles": formatted_data
+            "videos": formatted_data
         }, status=status.HTTP_200_OK)
 
 
@@ -54,7 +56,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["title"]: item for item in data}
+        formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
             "articles": formatted_data
@@ -125,10 +127,27 @@ class TeacherViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["name"]: item for item in data}
+        formatted_data = [{"title": item["name"], **item} for item in data]
 
         return Response({
             "teachers": formatted_data
+        }, status=status.HTTP_200_OK)
+        
+
+# 老師
+class ConductorViewSet(viewsets.ModelViewSet):
+    serializer_class = ConductorSerializer
+    queryset = Conductor.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = [{"title": item["name"], **item} for item in data]
+
+        return Response({
+            "conductors": formatted_data
         }, status=status.HTTP_200_OK)
 
 
@@ -141,7 +160,7 @@ class IndexStoryViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["title"]: item for item in data}
+        formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
             "indexStories": formatted_data
@@ -172,7 +191,7 @@ class ExperienceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["experience"]: item for item in data}
+        formatted_data = [{"title": item["experience"], **item} for item in data]
 
         return Response({
             "experiences": formatted_data

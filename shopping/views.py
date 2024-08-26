@@ -26,7 +26,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
-        formatted_data = {item["title"]: item for item in data}
+        formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
             "products": formatted_data
