@@ -15,7 +15,7 @@ admin.site.index_title = "樂團官網資料管理系統"
 class PhotoInline(admin.TabularInline):
     model = Photo
     extra = 1  # 初始显示的空白条目数量
-    fields = ['albumImage', 'description', 'introImage']  # 控制显示字段的顺序
+    fields = ['image', 'description']  # 控制显示字段的顺序
 
 
 class ArticleAdmin(admin.ModelAdmin):

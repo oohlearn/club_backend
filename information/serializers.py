@@ -88,7 +88,7 @@ class AlbumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ["title", "date", "description", "indexImage", "photos"]
+        fields = ["id", "title", "date", "description", "indexImage", "photos"]
 
 
 # TODO 更改結構
@@ -97,4 +97,4 @@ class IntroductionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Introduction
-        fields = ["date", "description", "indexImage", "image_2"]
+        fields = ["id", "date", "description", "indexImage", "image_2"]

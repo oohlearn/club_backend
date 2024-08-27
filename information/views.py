@@ -81,6 +81,17 @@ class AlbumViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
     pagination = AlbumListPagination
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        formatted_data = [{"title": item["title"], **item} for item in data]
+
+        return Response({
+            "albums": formatted_data
+        }, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         images = request.FILES.getlist('images')
         album_data = request.data
@@ -201,33 +212,6 @@ class ExperienceViewSet(viewsets.ModelViewSet):
 class IntroductionViewSet(viewsets.ModelViewSet):
     serializer_class = IntroductionSerializer
     parser_classes = (MultiPartParser, FormParser)
-
-    def create(self, request, *args, **kwargs):
-        images = request.FILES.getlist('images')
-        intro_data = request.data
-
-        intro_serializer = self.get_serializer(data=intro_data)
-        intro_serializer.is_valid(raise_exception=True)
-        intro = intro_serializer.save()
-
-        for image in images:
-            IntroPhotos.objects.create(intro=intro, image=image)
-
-        return Response(intro_serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        images = request.FILES.getlist('images')
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if images:
-            instance.images.all().delete()  # 刪除舊圖片
-            for image in images:
-                IntroImage.objects.create(intro=instance, image=image)
-
-        return Response(serializer.data)
 
     def get_queryset(self):
         queryset = Introduction.objects.all()

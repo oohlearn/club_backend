@@ -142,7 +142,7 @@ class Conductor(models.Model):
 class Photo(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
-    albumImage = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
+    image = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
     description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
 
     def __str__(self):
@@ -150,7 +150,7 @@ class Photo(models.Model):
 
 
 class Album(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
     description = HTMLField(verbose_name="相簿介紹", blank=True)
