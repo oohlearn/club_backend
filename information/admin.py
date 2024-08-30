@@ -75,11 +75,6 @@ class AlbumAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']  # 添加搜索功能
 
 
-@admin.register(Photo)
-class PhotoAdmin(admin.ModelAdmin):
-    list_display = ['description']
-    search_fields = ['description']
-
 
 # Register your models here.
 admin.site.register(Video, VideoAdmin)
@@ -87,4 +82,3 @@ admin.site.register(Article, ArticleAdmin)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(IndexStory)
 admin.site.register(Experience, ExperienceAdmin)
-admin.site.register(Tag)

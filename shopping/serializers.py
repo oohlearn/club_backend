@@ -1,23 +1,30 @@
 from rest_framework import serializers
-from .models import Product, Photo
+from .models import Product, Photo, Size
 
 
 # 商品
+class SizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = ['size', "group", 'description']
+
+
 class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photo
-        fields = ['image_data', 'description']
+        fields = ['image_data', 'description', "level"]
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    image_index = serializers.ImageField(max_length=None, use_url=True)
+    index_image = serializers.ImageField(max_length=None, use_url=True)
     photos = PhotoSerializer(many=True, required=False)
+    size_list = SizeSerializer(many=True, required=False)
 
     class Meta:
         model = Product
         fields = ["id", "title", "price", "discount_price", "state_tag",
-                  "description", "on_sell", "on_discount", "image_index",
-                  "photos"]
+                  "description", "on_sell", "on_discount", "category", 
+                  "index_image", "photos", "size_list"]
 
 
 # # 購物車

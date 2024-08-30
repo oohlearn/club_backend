@@ -5,7 +5,7 @@ from shortuuidfield import ShortUUIDField
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, help_text="請用『半形逗號』分開，例：甲, 乙, 丙")
 
     def __str__(self):
         return self.name
@@ -21,7 +21,7 @@ class Image(models.Model):
 
 
 class Video(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=200, verbose_name="標題")
     date = models.DateField(verbose_name="日期")
     performer = models.CharField(max_length=100, verbose_name="演出者")
@@ -40,12 +40,12 @@ class Video(models.Model):
 
 
 class Article(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
     content = HTMLField(verbose_name="文章內容", blank=True)
     article_img = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg", verbose_name="文章代表圖片")
-    tags_input = models.CharField(max_length=300, blank=True)
+    tags_input = models.CharField(max_length=300, blank=True, verbose_name="Hashtag 標記")
     tags = models.ManyToManyField(Tag, related_name="articles", blank=True)
 
     def save(self, *args, **kwargs):
@@ -140,7 +140,7 @@ class Conductor(models.Model):
 # TODO 待解決一次放入多張照片
 # TODO tags
 class Photo(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False)
     album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
     image = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
     description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
@@ -165,7 +165,7 @@ class Album(models.Model):
 
 
 class Introduction(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id = ShortUUIDField(primary_key=True, editable=False)
     date = models.DateField(verbose_name="更新日期")
     description = HTMLField(verbose_name="介紹內容", blank=True)
     indexImage = models.ImageField(verbose_name="團照", upload_to="Images/intro/", default="Image/None/Noimg.jpg")
