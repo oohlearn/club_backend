@@ -1,10 +1,13 @@
 from django.contrib import admin
 
 from .forms import ArticleAdminForm
-from django import forms
 
 from .models import (Tag, Video, Album, Article, Conductor,
                      IndexStory, Experience, Photo, Teacher, Introduction)
+
+from django.forms import TextInput
+from django import forms
+
 
 # 修改後台的標題
 admin.site.site_header = "後臺管理系統"

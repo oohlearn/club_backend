@@ -1,6 +1,6 @@
 from django.db import models
 from tinymce.models import HTMLField
-from activity.models import Activity
+from activity.models import Event
 import uuid  # 生成隨機ID
 from shortuuidfield import ShortUUIDField
 
@@ -16,8 +16,8 @@ class Size(models.Model):
     ]
     product = models.ForeignKey('Product', related_name='size_list', on_delete=models.CASCADE, verbose_name="尺寸列表")
     size = models.CharField(max_length=100, verbose_name="尺寸或顏色")
-    group = models.CharField(max_length=50, verbose_name="適用族群", blank=True, choices=GROUP_CHOICE)
-    description = models.CharField(max_length=255, verbose_name="備註，例：尺寸描述", blank=True)
+    group = models.CharField(max_length=50, verbose_name="適用族群", blank=True, null=True, choices=GROUP_CHOICE)
+    description = models.CharField(max_length=255, verbose_name="備註，例：尺寸描述", blank=True, null=True)
 
 
 class Product(models.Model):
@@ -35,10 +35,10 @@ class Product(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=500, verbose_name="商品名稱")
     price = models.IntegerField(verbose_name="原始價格")
-    discount_price = models.IntegerField(verbose_name="特價價格")
-    category = models.CharField(max_length=500, verbose_name="商品種類", choices=CATEGORY_CHOICES)
-    description = HTMLField(verbose_name="商品敘述", blank=True)
-    state_tag = models.CharField(max_length=100, blank=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
+    discount_price = models.IntegerField(verbose_name="特價價格", blank=True, null=True)
+    category = models.CharField(max_length=500, verbose_name="商品種類", choices=CATEGORY_CHOICES, null=True)
+    description = HTMLField(verbose_name="商品敘述", blank=True, null=True)
+    state_tag = models.CharField(max_length=100, blank=True, null=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
     on_discount = models.BooleanField(default=False, verbose_name="優惠中", help_text="勾選後，顯示特價價格")
     index_image = models.ImageField(upload_to="Images/products/", verbose_name="商品封面照", default="Image/None/Noimg.jpg")

@@ -26,9 +26,9 @@ class Video(models.Model):
     date = models.DateField(verbose_name="日期")
     performer = models.CharField(max_length=100, verbose_name="演出者")
     place = models.CharField(max_length=100, verbose_name="演出場地")
-    description = models.TextField(blank=True, verbose_name="演出內容敘述")
+    description = models.TextField(blank=True, verbose_name="演出內容敘述",  null=True)
     url = models.CharField(max_length=500, verbose_name="youtube網址")
-    embed_url = models.CharField(max_length=1000, blank=True, verbose_name="youtube內嵌網址(請點選youtube分享)")
+    embed_url = models.CharField(max_length=1000, blank=True,null=True, verbose_name="youtube內嵌網址(請點選youtube分享)")
     image = models.ImageField(upload_to="Images/videos/", default="Image/None/Noimg.jpg", verbose_name="封面照")
 
     def __str__(self):
@@ -43,9 +43,9 @@ class Article(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
-    content = HTMLField(verbose_name="文章內容", blank=True)
+    content = HTMLField(verbose_name="文章內容")
     article_img = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg", verbose_name="文章代表圖片")
-    tags_input = models.CharField(max_length=300, blank=True, verbose_name="Hashtag 標記")
+    tags_input = models.CharField(max_length=300, blank=True, null=True, verbose_name="Hashtag 標記")
     tags = models.ManyToManyField(Tag, related_name="articles", blank=True)
 
     def save(self, *args, **kwargs):
@@ -70,11 +70,11 @@ class Article(models.Model):
 class IndexStory(models.Model):
     title = models.CharField(max_length=500, verbose_name="封面故事標題")
     date = models.DateField(verbose_name="日期")
-    place = models.CharField(max_length=100, blank=True, verbose_name="場地")
-    btn_text = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True, verbose_name="描述（不超過10個字）")
+    place = models.CharField(max_length=100, blank=True, null=True, verbose_name="場地")
+    btn_text = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True, verbose_name="描述（不超過10個字）")
     image = models.ImageField(upload_to="Images/index_stories/", default="Image/None/Noimg.jpg", verbose_name="圖片")
-    url = models.CharField(max_length=500, blank=True)
+    url = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -88,7 +88,7 @@ class IndexStory(models.Model):
 class Experience(models.Model):
     date = models.DateField(verbose_name="日期", help_text="顯示範例：113年2月")
     experience = models.TextField(verbose_name="經歷標題")
-    description = HTMLField(verbose_name="經歷細節介紹", blank=True)
+    description = HTMLField(verbose_name="經歷細節介紹", blank=True, null=True,)
     image = models.ImageField(upload_to="Images/experiences/", default="Image/None/Noimg.jpg", verbose_name="圖片")
 
     def __str__(self):
@@ -110,7 +110,7 @@ class Experience(models.Model):
 
 
 class Teacher(models.Model):
-    group = models.CharField(max_length=500, verbose_name="組別", blank=True)
+    group = models.CharField(max_length=500, verbose_name="組別", blank=True, null=True)
     name = models.CharField(max_length=500, verbose_name="老師姓名")
     description = models.TextField(blank=True, verbose_name="老師簡歷")
     image = models.ImageField(upload_to="Images/teachers/", default="Image/None/Noimg.jpg", verbose_name="照片")
@@ -125,8 +125,8 @@ class Teacher(models.Model):
 
 class Conductor(models.Model):
     name = models.CharField(max_length=500, verbose_name="指揮姓名")
-    description = HTMLField(blank=True, verbose_name="指揮簡介")
-    experiences = HTMLField(blank=True, verbose_name="指揮經歷")
+    description = HTMLField(blank=True, null=True, verbose_name="指揮簡介")
+    experiences = HTMLField(blank=True, null=True, verbose_name="指揮經歷")
     image = models.ImageField(upload_to="Images/teachers/", default="Image/None/Noimg.jpg", verbose_name="照片")
 
     def __str__(self):
@@ -143,7 +143,7 @@ class Photo(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False)
     album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
     image = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
-    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True)
+    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True, null=True,)
 
     def __str__(self):
         return self.description
@@ -153,7 +153,7 @@ class Album(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=1000, verbose_name="相簿名稱")
     date = models.DateField(verbose_name="日期")
-    description = HTMLField(verbose_name="相簿介紹", blank=True)
+    description = HTMLField(verbose_name="相簿介紹", blank=True, null=True,)
     indexImage = models.ImageField(verbose_name="相簿封面照", upload_to="Images/albums/", default="Image/None/Noimg.jpg")
 
     def __str__(self):
@@ -165,9 +165,8 @@ class Album(models.Model):
 
 
 class Introduction(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False)
     date = models.DateField(verbose_name="更新日期")
-    description = HTMLField(verbose_name="介紹內容", blank=True)
+    description = HTMLField(verbose_name="介紹內容", blank=True, null=True)
     indexImage = models.ImageField(verbose_name="團照", upload_to="Images/intro/", default="Image/None/Noimg.jpg")
     image_2 = models.ImageField(verbose_name="LOGO", upload_to="Images/intro/", default="Image/None/Noimg.jpg")
 

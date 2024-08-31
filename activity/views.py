@@ -3,22 +3,22 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Activity
-from .serializers import ActivitySerializer
+from .models import Event
+from .serializers import EventSerializer
 # Create your views here.
 
 
 # 活動
-class ActivityListPagination(PageNumberPagination):
+class EventListPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = "page_size"
-    max_page_size = 100
+    max_page_size = 50
 
 
-class ActivityViewSet(viewsets.ModelViewSet):
-    serializer_class = ActivitySerializer
-    pagination_class = ActivityListPagination
-    queryset = Activity.objects.all()
+class EventViewSet(viewsets.ModelViewSet):
+    serializer_class = EventSerializer
+    pagination_class = EventListPagination
+    queryset = Event.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -28,12 +28,12 @@ class ActivityViewSet(viewsets.ModelViewSet):
         formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
-            "articles": formatted_data
+            "events": formatted_data
         }, status=status.HTTP_200_OK)
 
     def get_queryset(self):
-        queryset = Activity.objects.all()
+        queryset = Event.objects.all()
         id = self.request.query_params.get('id')
         if id is not None:
-            queryset = Activity.objects.filter(id=id)
+            queryset = Event.objects.filter(id=id)
         return queryset
