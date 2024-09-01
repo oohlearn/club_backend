@@ -17,6 +17,16 @@ class Program(models.Model):
         return self.title
 
 
+# Create your models here.
+class Player(models.Model):
+    name = models.CharField(max_length=500, verbose_name="姓名")
+    title = models.CharField(max_length=500, verbose_name="職稱、腳色", blank=True)
+    event = models.ForeignKey('Event', related_name='player', on_delete=models.CASCADE, verbose_name="演出活動")
+
+    def __str__(self):
+        return self.title
+
+
 class Venue(models.Model):
     name = models.CharField(max_length=300)
     total_seats = models.IntegerField()
@@ -33,8 +43,7 @@ class Event(models.Model):
     id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=500, verbose_name="活動/演出標題")
     date = models.DateTimeField(verbose_name="日期時間")
-    place = models.CharField(max_length=100, verbose_name="場地", blank=True, null=True)
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, verbose_name="預設場地清單", blank=True, null=True)
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, verbose_name="場地", blank=True, null=True)
     price_type = models.CharField(max_length=100, verbose_name="票價（例：200/300/500）")
     poster = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="海報圖")
     description = HTMLField(verbose_name="活動介紹", blank=True)
@@ -62,6 +71,8 @@ class Zone(models.Model):
     color = models.CharField(max_length=10, choices=COLOR_CHOICE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zone')
     price = models.IntegerField()
+    description = models.CharField(max_length=500, blank=True, null=True)
+    help_words = models.CharField(max_length=500, blank=True, null=True)
 
 
 class DiscountCode(models.Model):

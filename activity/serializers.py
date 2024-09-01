@@ -1,11 +1,17 @@
 from rest_framework import serializers
-from .models import Event, Zone, Seat, Venue, Program, DiscountCode
+from .models import Event, Zone, Seat, Venue, Program, DiscountCode, Player
 
 
 class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = ["title", "composer"]
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = ["title", "name"]
 
 
 class SeatSerializer(serializers.ModelSerializer):
@@ -20,7 +26,7 @@ class ZoneSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Zone
-        fields = ["id", "name", "price", "seat"]
+        fields = ["id", "name", "price", "seat", "description", "help_words"]
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
@@ -31,7 +37,7 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
 
 
 class VenueSerializer(serializers.ModelSerializer):
-    official_img = serializers.ImageField(max_length=None, use_url=True)
+    official_seat_image = serializers.ImageField(max_length=None, use_url=True)
     # use_url=True時，序列化器將會返回圖片的URL
 
     class Meta:
@@ -45,12 +51,29 @@ class EventSerializer(serializers.ModelSerializer):
     poster = serializers.ImageField(max_length=None, use_url=True)
     program = ProgramSerializer(many=True)
     zone = ZoneSerializer(many=True)
+    venue = VenueSerializer()
     discount_code = DiscountCodeSerializer(many=True)
+    date = serializers.SerializerMethodField()
+    time = serializers.SerializerMethodField()
+    weekday = serializers.SerializerMethodField()
+    player = PlayerSerializer(many=True)
 
     class Meta:
         model = Event
-        fields = ["id", "title", "date", "place", "venue", "poster",
-                  "description", "program", "zone", "discount_code"]
+        fields = ["id", "title", "date", "weekday", "time", "venue", "price_type", "poster",
+                  "description", "program", "player", "zone", "discount_code"]
+
+    def get_date(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else None
+
+    def get_time(self, obj):
+        return obj.date.strftime("%H:%M") if obj.date else None
+
+    def get_weekday(self, obj):
+        if obj.date:
+            weekdays = ["一", "二", "三", "四", "五", "六", "日"]
+            return weekdays[obj.date.weekday()]
+        return None
 # TODO尚未完成票券部分
 # 票
 # class TicketOrderSerializer(serializers.Serializer):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html  #修改日期用
-from .models import Event, Program, Zone, Seat, Venue, DiscountCode
+from .models import Event, Program, Zone, Seat, Venue, DiscountCode, Player
 from django.forms import TextInput
 
 
@@ -12,6 +12,17 @@ class ProgramInline(admin.TabularInline):
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'composer':
+            kwargs['widget'] = TextInput(attrs={'size': "5"})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+
+class PlayerInline(admin.TabularInline):
+    model = Player
+    extra = 3  # 初始显示的空白条目数量
+    fields = ['title', 'name']
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'title':
             kwargs['widget'] = TextInput(attrs={'size': "5"})
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
@@ -50,9 +61,9 @@ class PhotoInline(admin.TabularInline):
 # 自定義欄位
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ("title", "date", "place", "venue", "on_sell")
-    search_fields = ("title", "place")
-    inlines = [ProgramInline, ZoneInline, DiscountCodeInline]
+    list_display = ("title", "date", "venue", "on_sell")
+    search_fields = ("title", "venue")
+    inlines = [ProgramInline, PlayerInline, ZoneInline, DiscountCodeInline]
 
     def formatted_date(self, obj):
         # 將日期格式化為 YYYY,M,D

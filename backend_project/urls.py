@@ -30,5 +30,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/information/', include(router.urls)),
     path("api/shopping/", include(router.urls)),
-    path("api/event/", include(router.urls))
+    path("api/activity/", include(router.urls))
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls
