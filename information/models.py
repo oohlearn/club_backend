@@ -1,15 +1,9 @@
 from django.db import models
 from tinymce.models import HTMLField
-import uuid  # 生成隨機ID
 from shortuuidfield import ShortUUIDField
-
-
-class Tag(models.Model):
-    name = models.CharField(max_length=100, help_text="請用『半形逗號』分開，例：甲, 乙, 丙")
-
-    def __str__(self):
-        return self.name
-
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.db import transaction
 
 class Image(models.Model):
     image = models.ImageField(upload_to='images/')
@@ -39,33 +33,59 @@ class Video(models.Model):
         verbose_name_plural = "影片列表"  # 自定義複數形式的名稱
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
 class Article(models.Model):
+    STATUS_CHOICES = [
+        ("已發佈", "已發佈"),
+        ("草稿", "草稿"),
+        ("下架封存", "下架封存"),
+    ]
     id = ShortUUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=200, verbose_name="文章標題")
     date = models.DateField(verbose_name="日期")
     content = HTMLField(verbose_name="文章內容")
     article_img = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg", verbose_name="文章代表圖片")
+    status = models.CharField(max_length=50, verbose_name="發布狀態", default="草稿", choices=STATUS_CHOICES)
     tags_input = models.CharField(max_length=300, blank=True, null=True, verbose_name="Hashtag 標記")
     tags = models.ManyToManyField(Tag, related_name="articles", blank=True)
 
-    def save(self, *args, **kwargs):
-        # 在保存之前處理 tags_input
-        if self.tags_input:
-            tag_names = [name.strip() for name in self.tags_input.split(',')]
-            tags = []
-            for name in tag_names:
-                tag, created = Tag.objects.get_or_create(name=name)
-                tags.append(tag)
-            self.tags.set(tags)
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # 在保存之前處理 tags_input
+    #     if self.tags_input:
+    #         tag_names = [name.strip() for name in self.tags_input.split(',')]
+    #         tags = []
+    #         for name in tag_names:
+    #             tag, created = Tag.objects.get_or_create(name=name)
+    #             tags.append(tag)
+    #         self.tags.set(tags)
+    #     super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.title
 
     class Meta:
         verbose_name = "文章"  # 自定義單數形式的名稱
         verbose_name_plural = "文章列表"  # 自定義複數形式的名稱
+    
+    def save(self, *args, **kwargs):
+        # 先保存文章
+        super().save(*args, **kwargs)
 
+
+@receiver(post_save, sender=Article)
+def handle_tags(sender, instance, **kwargs):
+    if instance.tags_input:
+        tag_names = [name.strip() for name in instance.tags_input.split(',')]
+        tags = []
+        for name in tag_names:
+            tag, created = Tag.objects.get_or_create(name=name)
+            tags.append(tag)
+        with transaction.atomic():
+            instance.tags.set(tags)
 
 class IndexStory(models.Model):
     title = models.CharField(max_length=500, verbose_name="封面故事標題")

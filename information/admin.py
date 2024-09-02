@@ -1,13 +1,10 @@
 from django.contrib import admin
 
-from .forms import ArticleAdminForm
-
 from .models import (Tag, Video, Album, Article, Conductor,
                      IndexStory, Experience, Photo, Teacher, Introduction)
 
-from django.forms import TextInput
 from django import forms
-
+from .forms import ArticleAdminForm
 
 # 修改後台的標題
 admin.site.site_header = "後臺管理系統"
@@ -21,6 +18,7 @@ class PhotoInline(admin.TabularInline):
     fields = ['image', 'description']  # 控制显示字段的顺序
 
 
+@admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
     list_display = ("title", "date",)
@@ -81,7 +79,6 @@ class AlbumAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Video, VideoAdmin)
-admin.site.register(Article, ArticleAdmin)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(IndexStory)
 admin.site.register(Experience, ExperienceAdmin)

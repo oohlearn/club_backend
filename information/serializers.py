@@ -3,12 +3,6 @@ from .models import (Video, Album, Conductor, Experience, Introduction,
                      IndexStory, Article, Tag, Photo, Teacher)
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ['name']  # 假設標籤模型中有 name 欄位
-
-
 # Videos
 class VideoSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, use_url=True)
@@ -54,10 +48,16 @@ class ExperienceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["name"]
+
+
 # 文章
 class ArticleSerializer(serializers.ModelSerializer):
     article_img = serializers.ImageField(max_length=None, use_url=True)
-    tags = serializers.SerializerMethodField()  # 使用 SerializerMethodField 自定義 tags 字段
+    tags = serializers.SerializerMethodField()
 
     def get_tags(self, obj):
         # 從 Article 實例中獲取關聯的 Tag 對象，並返回它們的名稱列表
@@ -65,7 +65,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ["id", "title", "date", "content", "tags", "article_img"]
+        fields = ["id", "title", "date", "content", "tags", "article_img", "status"]
 
 
 # 相簿

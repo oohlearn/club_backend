@@ -8,7 +8,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('information', '0009_article_tag'),
-        ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),
     ]
 
     operations = [
