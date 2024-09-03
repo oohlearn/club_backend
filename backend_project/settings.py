@@ -52,7 +52,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'advlist autolink lists link charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime table paste code help wordcount',
     'toolbar': 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
     'height': 500,  # 编辑器的高度
-    'width': "60%"   # 编辑器的宽度
+    'width': "80%"   # 编辑器的宽度
 }
 
 

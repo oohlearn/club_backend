@@ -26,7 +26,7 @@ class ZoneSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Zone
-        fields = ["id", "name", "price", "seat", "description", "help_words"]
+        fields = ["id", "name", "eng_name", "area", "color", "price", "seat", "description", "help_words"]
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):

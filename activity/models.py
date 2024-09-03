@@ -28,11 +28,18 @@ class Player(models.Model):
 
 
 class Venue(models.Model):
+    SIZE_CHOICES = [
+        ("小型場地", "小型場地（總座位數＜300，座位區塊3塊以內）"),
+        ("中小型場地", "中小型場地（總座位數介於300～500，座位區塊6塊以內）"),
+        ("中型場地", "中型場地（總座位數介於500-1200，座位區塊6塊以內）"),
+        ("中大型場地", "中大型場地（總座位數介於1200-2000，座位區塊8塊以內）"),
+    ]
+    size = models.CharField(max_length=100, choices=SIZE_CHOICES)
     name = models.CharField(max_length=300)
-    total_seats = models.IntegerField()
+    total_seats = models.IntegerField(blank=True)
     address = models.CharField(max_length=500)
     traffic_info = HTMLField(verbose_name="交通資訊", blank=True)
-    map_url = models.CharField(max_length=1000)
+    map_url = models.CharField(max_length=1000, blank=True)
     official_seat_image = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg")
 
     def __str__(self) -> str:
@@ -66,13 +73,27 @@ class Zone(models.Model):
         ('#FFFF00', '黃'),
         ("#808080", "灰")
     ]
-    name = models.CharField(max_length=100)
-    eng_name = models.CharField(max_length=100)
-    color = models.CharField(max_length=10, choices=COLOR_CHOICE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zone')
-    price = models.IntegerField()
-    description = models.CharField(max_length=500, blank=True, null=True)
-    help_words = models.CharField(max_length=500, blank=True, null=True)
+
+    AREA_CHOICES = [
+        ("前左", "前左"),
+        ("前中", "前中"),
+        ("前右", "前右"),
+        ("中左", "中左"),
+        ("中中", "中中"),
+        ("中右", "中右"),
+        ("後左", "後左"),
+        ("後中", "後中"),
+        ("後右", "後右"),
+    ]
+    name = models.CharField(max_length=50, verbose_name="票種")
+    eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
+    area = models.CharField(max_length=50, choices=AREA_CHOICES, verbose_name="區域相對位置", help_text="例：普通票A區、普通票B區", blank=True, null=True)
+    color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zone', verbose_name="對應的演出名稱")
+    price = models.IntegerField(verbose_name="票價")
+    total = models.IntegerField(verbose_name="總數", blank=True, null=True)
+    description = models.CharField(max_length=500, blank=True, null=True, verbose_name="票券說明（下拉式顯示）")
+    help_words = models.CharField(max_length=500, blank=True, null=True, help_text="票券說明（直接顯示）")
 
 
 class DiscountCode(models.Model):
@@ -87,8 +108,10 @@ class DiscountCode(models.Model):
 
 
 class Seat(models.Model):
-    zone = models.ForeignKey(Zone, on_delete=models.CASCADE,  related_name='seat',)
-    seat_num = models.CharField(max_length=10)
+    zone = models.ForeignKey(Zone, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
+    seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
+    is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
+    is_sold = models.BooleanField(default=False, verbose_name="已售出")
 
     def __str__(self) -> str:
         return self.seat_num

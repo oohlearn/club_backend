@@ -31,6 +31,13 @@ class ZoneInline(admin.TabularInline):
     model = Zone
     extra = 3
 
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'name':
+            kwargs['widget'] = TextInput(attrs={'size': "10"})
+        if db_field.name == 'eng_name':
+            kwargs['widget'] = TextInput(attrs={'size': "10"})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
 
 class DiscountCodeInline(admin.TabularInline):
     model = DiscountCode
@@ -48,8 +55,8 @@ class DiscountCodeInline(admin.TabularInline):
 
 class SeatsInline(admin.TabularInline):
     model = Seat
-    extra = 10  # 初始显示的空白条目数量
-    fields = ['seat_num', "zone"]  # 控制显示字段的顺序
+    extra = 50  # 初始显示的空白条目数量
+    fields = ['seat_num', "zone", "is_chair"]  # 控制显示字段的顺序
 
 
 class PhotoInline(admin.TabularInline):
@@ -100,5 +107,6 @@ class SeatAdmin(admin.ModelAdmin):
 
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
-    list_display = ["event", "name", "price"]
+    list_display = ["event", "name", "area", "price"]
     inlines = [SeatsInline]
+    ordering = ["-price", "area"]  # 按價錢（price）排列
