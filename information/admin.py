@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (Tag, Video, Album, Article, Conductor,
-                     IndexStory, Experience, Photo, Teacher, Introduction)
+                     IndexStory, Experience, Photo, Teacher, Introduction, HomeContent)
 
 from django import forms
 from .forms import ArticleAdminForm
@@ -16,6 +16,9 @@ class PhotoInline(admin.TabularInline):
     model = Photo
     extra = 1  # 初始显示的空白条目数量
     fields = ['image', 'description']  # 控制显示字段的顺序
+
+
+admin.site.register(HomeContent)
 
 
 @admin.register(Article)

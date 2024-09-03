@@ -3,7 +3,7 @@ from django.urls import path, include
 from shopping.views import ProductViewSet
 from activity.views import EventViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
-                               IndexStoryViewSet, TeacherViewSet, 
+                               IndexStoryViewSet, TeacherViewSet, HomeContentViewSet,
                                ExperienceViewSet, ConductorViewSet, IntroductionViewSet)
 # API
 from rest_framework import routers
@@ -24,6 +24,7 @@ router.register(r"experiences", ExperienceViewSet, basename="experience")
 router.register(r"products", ProductViewSet, basename="product")
 router.register(r"conductors", ConductorViewSet, basename="conductor")
 router.register(r"introduction", IntroductionViewSet, basename="introduction")
+router.register(r"home_content", HomeContentViewSet, basename="homeContent")
 
 
 urlpatterns = [

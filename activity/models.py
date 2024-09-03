@@ -31,7 +31,7 @@ class Venue(models.Model):
     name = models.CharField(max_length=300)
     total_seats = models.IntegerField()
     address = models.CharField(max_length=500)
-    traffic_info = models.TextField()
+    traffic_info = HTMLField(verbose_name="交通資訊", blank=True)
     map_url = models.CharField(max_length=1000)
     official_seat_image = models.ImageField(upload_to="Images/articles/", default="Image/None/Noimg.jpg")
 

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Video, Album, Conductor, Experience, Introduction,
-                     IndexStory, Article, Tag, Photo, Teacher)
+                     IndexStory, Article, Tag, Photo, Teacher, HomeContent)
+from activity.serializers import EventSerializer
 
 
 # Videos
@@ -98,3 +99,13 @@ class IntroductionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Introduction
         fields = ["id", "date", "description", "indexImage", "image_2"]
+
+
+# HomeContent
+class HomeContentSerializer(serializers.ModelSerializer):
+    articles = ArticleSerializer(many=True, read_only=True)
+    events = EventSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = HomeContent
+        fields = ["events", "articles"]

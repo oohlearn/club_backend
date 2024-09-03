@@ -7,9 +7,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 from .models import (Video, IndexStory, Album, Article, Experience, Conductor,
-                     Teacher, Introduction)
+                     Teacher, Introduction, HomeContent)
 from .serializers import (VideoSerializer,
-                          IndexStorySerializer, AlbumSerializer,
+                          IndexStorySerializer, AlbumSerializer, HomeContentSerializer,
                           ArticleSerializer, ExperienceSerializer,
                           TeacherSerializer, ConductorSerializer, IntroductionSerializer)
 
@@ -159,6 +159,24 @@ class ConductorViewSet(viewsets.ModelViewSet):
         return Response({
             "conductors": formatted_data
         }, status=status.HTTP_200_OK)
+
+
+# 首頁資料
+class HomeContentViewSet(viewsets.ModelViewSet):
+    serializer_class = HomeContentSerializer
+    queryset = HomeContent.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().first()  # 獲取第一個（也可能是唯一的）HomeContent 實例
+        if queryset:
+            serializer = self.get_serializer(queryset)
+            return Response({
+                "homeContent": [serializer.data]
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "homeContent": []
+            }, status=status.HTTP_200_OK)
 
 
 # 封面故事

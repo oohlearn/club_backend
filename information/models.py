@@ -4,6 +4,11 @@ from shortuuidfield import ShortUUIDField
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import transaction
+from activity.models import Event
+# 更新model內容的狀態
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
 
 class Image(models.Model):
     image = models.ImageField(upload_to='images/')
@@ -66,15 +71,50 @@ class Article(models.Model):
     #         self.tags.set(tags)
     #     super().save(*args, **kwargs)
 
-
     class Meta:
         verbose_name = "文章"  # 自定義單數形式的名稱
         verbose_name_plural = "文章列表"  # 自定義複數形式的名稱
-    
+
     def save(self, *args, **kwargs):
         # 先保存文章
         super().save(*args, **kwargs)
 
+
+class HomeContent(models.Model):
+    articles = models.ManyToManyField(Article, blank=True, related_name="home_contents")
+    events = models.ManyToManyField(Event, blank=True, related_name="home_contents")
+
+    def save(self, *args, **kwargs):
+        # Save the instance first to get an ID
+        super().save(*args, **kwargs)
+
+        # Get the latest 5 published articles
+        latest_articles = Article.objects.filter(status="已發佈").order_by('-date')[:5]
+        self.articles.set(latest_articles)
+
+        # Get the events that are currently on sale
+        on_sale_events = Event.objects.filter(on_sell=True).order_by('-date')[:5]
+        self.events.set(on_sale_events)
+
+
+# 更新 HomeContent 实例的文章和活动
+def update_home_content():
+    home_content = HomeContent.objects.first()
+    if home_content:
+        latest_articles = Article.objects.filter(status="已發佈").order_by('-date')[:5]
+        home_content.articles.set(latest_articles)
+
+        on_sale_events = Event.objects.filter(on_sell=True).order_by('-date')[:5]
+        home_content.events.set(on_sale_events)
+        home_content.save()
+
+# 当 Event 保存或删除时触发更新 HomeContent
+@receiver(post_save, sender=Event)
+@receiver(post_delete, sender=Event)
+@receiver(post_save, sender=Article)
+@receiver(post_delete, sender=Article)
+def update_home_content_events(sender, instance, **kwargs):
+    update_home_content()
 
 @receiver(post_save, sender=Article)
 def handle_tags(sender, instance, **kwargs):
@@ -86,6 +126,7 @@ def handle_tags(sender, instance, **kwargs):
             tags.append(tag)
         with transaction.atomic():
             instance.tags.set(tags)
+
 
 class IndexStory(models.Model):
     title = models.CharField(max_length=500, verbose_name="封面故事標題")
@@ -103,6 +144,8 @@ class IndexStory(models.Model):
         verbose_name = "封面故事（會在網頁上方跑馬燈）"  # 自定義單數形式的名稱
         verbose_name_plural = "封面故事列表"  # 自定義複數形式的名稱
 
+
+    
 
 # TODO 修改日期格式
 class Experience(models.Model):
