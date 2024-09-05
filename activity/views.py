@@ -2,9 +2,10 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 
-from .models import Event
-from .serializers import EventSerializer
+from .models import Event, Seat
+from .serializers import EventSerializer, SeatSerializer
 # Create your views here.
 
 
@@ -37,3 +38,15 @@ class EventViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Event.objects.filter(id=id)
         return queryset
+
+# TODO 座位在API的排序順序
+class SeatViewSet(viewsets.ModelViewSet):
+    serializer_class = SeatSerializer
+    queryset = Event.objects.all()
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.extra(
+            select={'letter': 'SUBSTR(seat_num, 1, 1)',
+                    'number': 'CAST(SUBSTR(seat_num, 2) AS INTEGER)'}
+        ).order_by('letter', 'number')
