@@ -44,7 +44,7 @@ class ZoneInline(admin.TabularInline):
 class SeatsInline(admin.TabularInline):
     model = Seat
     extra = 30  # 初始显示的空白条目数量
-    fields = ['seat_num', "price", "color", "not_sell", "is_chair", "zone"]
+    fields = ['seat_num', "price", "color", "not_sell", "is_chair", "zone", "is_sold"]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'seat_num':

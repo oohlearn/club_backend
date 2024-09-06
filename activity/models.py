@@ -115,7 +115,7 @@ class Zone(models.Model):
         ("F", "F中右"),
         ("G", "G後左"),
         ("H", "H後中"),
-        ("I", "I後右"),
+        ("J", "J後右"),
     ]
     name = models.CharField(max_length=50, verbose_name="票種")
     eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
@@ -158,7 +158,7 @@ class Seat(models.Model):
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
-    is_sold = models.BooleanField(default=False, verbose_name="已售出", editable=False)
+    is_sold = models.BooleanField(default=False, verbose_name="已售出")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
 
     # def clean(self):
@@ -215,7 +215,7 @@ class ZoneForNumberRow(models.Model):
         ("F", "F中右"),
         ("G", "G後左"),
         ("H", "H後中"),
-        ("I", "I後右"),
+        ("J", "J後右"),
     ]
     name = models.CharField(max_length=50, verbose_name="票種")
     eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
@@ -288,7 +288,7 @@ class SeatForNumberRow(models.Model):
         super().save(*args, **kwargs)  # 确保保存实例
 
     class Meta:
-        ordering = ['seat_num']
+        ordering = ['row_num']
 
     @staticmethod
     def get_ordered_queryset():
