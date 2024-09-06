@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, Zone, Seat, Venue, Program, DiscountCode, Player, Seat2, Zone2
+from .models import Event, Zone, Seat, Venue, Program, DiscountCode, Player, SeatForNumberRow, ZoneForNumberRow
 import re
 
 
@@ -43,6 +43,22 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
         fields = ["name", "code", "discount", "description"]
 
 
+# Number Row
+class SeatFroNumberRowSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SeatForNumberRow
+        fields = ["row_num", "seat_num", "price", "color", "not_sell", "is_sold", "is_chair"]
+
+
+class ZoneForNumberRowSerializer(serializers.ModelSerializer):
+    seat = SeatFroNumberRowSerializer(many=True, required=False)
+
+    class Meta:
+        model = Zone
+        fields = ["id", "name", "eng_name", "area", "color", "price", "seat", "description", "help_words"]
+
+
 class VenueSerializer(serializers.ModelSerializer):
     official_seat_image = serializers.ImageField(max_length=None, use_url=True)
     # use_url=True時，序列化器將會返回圖片的URL
@@ -64,11 +80,13 @@ class EventSerializer(serializers.ModelSerializer):
     time = serializers.SerializerMethodField()
     weekday = serializers.SerializerMethodField()
     player = PlayerSerializer(many=True)
+    zoneForNumberRow = ZoneForNumberRowSerializer(many=True)
 
     class Meta:
         model = Event
         fields = ["id", "title", "date", "weekday", "time", "venue", "price_type", "poster",
-                  "description", "program", "player", "ticket_system_url", "zone", "discount_code", "zone2"]
+                  "description", "program", "player", "ticket_system_url", "zone", "discount_code",
+                  "zoneForNumberRow"]
 
     def get_date(self, obj):
         return obj.date.strftime("%Y-%m-%d") if obj.date else None
@@ -83,19 +101,7 @@ class EventSerializer(serializers.ModelSerializer):
         return None
 
 
-# ver2
-class Seat2Serializer(serializers.ModelSerializer):
-    class Meta:
-        model = Seat2
-        fields = ['seat_number']
 
-
-class Zone2Serializer(serializers.ModelSerializer):
-    seats = SeatSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Zone2
-        fields = ['id', 'event', 'area', 'row', 'start', 'end', 'price']
 
 
 # TODO尚未完成票券部分

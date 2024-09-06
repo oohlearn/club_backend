@@ -3,6 +3,9 @@ from tinymce.models import HTMLField
 from shortuuidfield import ShortUUIDField
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
+from django.db.models.functions import Substr, Cast
+import re
+
 
 
 # Create your models here.
@@ -104,15 +107,15 @@ class Zone(models.Model):
     ]
 
     AREA_CHOICES = [
-        ("前左", "前左"),
-        ("前中", "前中"),
-        ("前右", "前右"),
-        ("中左", "中左"),
-        ("中中", "中中"),
-        ("中右", "中右"),
-        ("後左", "後左"),
-        ("後中", "後中"),
-        ("後右", "後右"),
+        ("A", "A前左"),
+        ("B", "B前中"),
+        ("C", "C前右"),
+        ("D", "D中左"),
+        ("E", "E中中"),
+        ("F", "F中右"),
+        ("G", "G後左"),
+        ("H", "H後中"),
+        ("I", "I後右"),
     ]
     name = models.CharField(max_length=50, verbose_name="票種")
     eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
@@ -158,16 +161,156 @@ class Seat(models.Model):
     is_sold = models.BooleanField(default=False, verbose_name="已售出", editable=False)
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
 
+    # def clean(self):
+    #     # 驗證座位號格式
+    #     if not re.match(r'^[A-Z]\d+$', self.seat_num):
+    #         raise ValidationError('座位號格式不正確。應為一個大寫字母後跟數字，如 A1, B12 等。')
+
+    def save(self, *args, **kwargs):
+        # 在保存之前調用 clean 方法進行驗證
+        # self.clean()
+
+        # 將座位號轉換為標準格式（例如：A1 -> A01, B2 -> B02）
+        letter = self.seat_num[0]
+        number = self.seat_num[1:].zfill(2)  # 將數字部分填充到至少兩位
+        self.seat_num = f"{letter}{number}"
+
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['seat_num']
+
+    @staticmethod
+    def get_ordered_queryset():
+        return Seat.objects.annotate(
+            letter=Substr('seat_num', 1, 1),
+            number=Cast(Substr('seat_num', 2), output_field=models.CharField())
+        ).order_by('letter', 'number')
+
     def __str__(self) -> str:
         return self.seat_num
+
+# 排數為數字版
+class ZoneForNumberRow(models.Model):
+    COLOR_CHOICE = [
+        ('#FF5151', '紅'),
+        ('#BE77FF', '紫'),
+        ('#9AFF02', '淺綠'),
+        ('#84C1FF', '淺藍'),
+        ('#F9F900', '黃'),
+        ("#FFAF60", "橘"),
+        ('#4F9D9D', '青'),
+        ('#00A600', '深綠'),
+        ('#0073E3', '深藍'),
+        ('#844200', '深棕'),
+        ('#ADADAD', '灰(非賣票)')
+    ]
+
+    AREA_CHOICES = [
+        ("A", "A前左"),
+        ("B", "B前中"),
+        ("C", "C前右"),
+        ("D", "D中左"),
+        ("E", "E中中"),
+        ("F", "F中右"),
+        ("G", "G後左"),
+        ("H", "H後中"),
+        ("I", "I後右"),
+    ]
+    name = models.CharField(max_length=50, verbose_name="票種")
+    eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
+    area = models.CharField(max_length=50, choices=AREA_CHOICES, verbose_name="分區", help_text="票券上僅會顯示「A區」", blank=True, null=True)
+    color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zoneForNumberRow', verbose_name="對應的演出名稱")
+    price = models.IntegerField(verbose_name="區域票價", help_text="下方可指定單一票的票價")
+    total = models.IntegerField(verbose_name="總數", blank=True, null=True)
+    description = models.CharField(max_length=500, blank=True, null=True, verbose_name="票券說明（下拉式顯示）")
+    help_words = models.CharField(max_length=500, blank=True, null=True, help_text="票券說明（直接顯示）")
+
+
+class SeatForNumberRow(models.Model):
+    COLOR_CHOICE = [
+        ('#FF5151', '紅'),
+        ('#BE˙˙FF', '紫'),
+        ('#9AFF02', '淺綠'),
+        ('#84C1FF', '淺藍'),
+        ('#F9F900', '黃'),
+        ("#FFAF60", "橘"),
+        ('#4F9D9D', '青'),
+        ('#00A600', '深綠'),
+        ('#0073E3', '深藍'),
+        ('#844200', '深棕'),
+        ('#ADADAD', '灰(非賣票)')
+    ]
+    ROW_CHOICE = [
+        ("01", "第01排"),
+        ("02", "第02排"),
+        ("03", "第03排"),
+        ("04", "第04排"),
+        ("05", "第05排"),
+        ("06", "第06排"),
+        ("07", "第07排"),
+        ("08", "第08排"),
+        ("09", "第09排"),
+        ("10", "第10排"),
+        ("11", "第11排"),
+        ("12", "第12排"),
+        ("13", "第13排"),
+        ("14", "第14排"),
+        ("15", "第15排"),
+        ("16", "第16排"),
+        ("17", "第17排"),
+        ("18", "第18排"),
+        ("19", "第19排"),
+        ("20", "第20排"),
+        ("21", "第21排"),
+        ("22", "第22排"),
+        ("23", "第23排"),
+        ("24", "第24排"),
+        ("25", "第25排"),
+        ("26", "第26排"),
+        ("27", "第27排"),
+        ("28", "第28排"),
+        ("29", "第29排"),
+    ]
+    zone = models.ForeignKey(ZoneForNumberRow, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
+    row_num = models.CharField(max_length=10, choices=ROW_CHOICE, verbose_name="排數", )
+    seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
+    price = models.IntegerField(verbose_name="票價", blank=True, null=True)
+    color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
+    is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
+    is_sold = models.BooleanField(default=False, verbose_name="已售出", editable=False)
+    not_sell = models.BooleanField(default=False, verbose_name="非賣票")
+
+    def save(self, *args, **kwargs):
+        # 将 seat_num 填充为两位数
+        self.seat_num = self.seat_num.zfill(2)
+        super().save(*args, **kwargs)  # 确保保存实例
+
+    class Meta:
+        ordering = ['seat_num']
+
+    @staticmethod
+    def get_ordered_queryset():
+        return Seat.objects.annotate(
+            letter=Case(
+                When(seat_num__regex=r'^[A-Za-z]', then=Substr('seat_num', 1, 1)),
+                default=Value(''),  # 如果不是字母，则设为空字符串
+                output_field=models.CharField()
+            ),
+            number=Case(
+                When(seat_num__regex=r'^[A-Za-z]', then=Cast(Substr('seat_num', 2), output_field=models.IntegerField())),
+                When(seat_num__regex=r'^[0-9]', then=Cast('seat_num', output_field=models.IntegerField())),  # 如果是数字，直接转换
+                default=Value(0),
+                output_field=models.IntegerField()
+            )
+        ).order_by('letter', 'number')
 
 
 # TODO 待處理
 # 地理分區
 class Zone2(models.Model):
     fs = FileSystemStorage(location='/media/excel_files')
-
-    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='zone2', verbose_name="對應的演出名稱")
     area = models.CharField(max_length=100, verbose_name="區域名稱", blank=True, null=True)
     row = models.CharField(max_length=10, verbose_name="排數名稱", blank=True, null=True)
     start = models.IntegerField(verbose_name="起始座位號", blank=True, null=True)
