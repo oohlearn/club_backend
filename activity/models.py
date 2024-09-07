@@ -156,15 +156,11 @@ class Seat(models.Model):
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
     seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
+    area = models.CharField(max_length=10, verbose_name="座位號碼", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
     is_sold = models.BooleanField(default=False, verbose_name="已售出")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
-
-    # def clean(self):
-    #     # 驗證座位號格式
-    #     if not re.match(r'^[A-Z]\d+$', self.seat_num):
-    #         raise ValidationError('座位號格式不正確。應為一個大寫字母後跟數字，如 A1, B12 等。')
 
     def save(self, *args, **kwargs):
         # 在保存之前調用 clean 方法進行驗證
@@ -174,6 +170,16 @@ class Seat(models.Model):
         letter = self.seat_num[0]
         number = self.seat_num[1:].zfill(2)  # 將數字部分填充到至少兩位
         self.seat_num = f"{letter}{number}"
+
+        if not self.color:
+            self.color = self.zone.color
+
+        # 如果沒有指定票價，使用 zone 的票價
+        if self.price is None:
+            self.price = self.zone.price
+
+        if self.area is None:
+            self.price = self.zone.area
 
         super().save(*args, **kwargs)
 
@@ -276,6 +282,7 @@ class SeatForNumberRow(models.Model):
     zone = models.ForeignKey(ZoneForNumberRow, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
     row_num = models.CharField(max_length=10, choices=ROW_CHOICE, verbose_name="排數", )
     seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
+    area = models.CharField(max_length=10, verbose_name="座位號碼", blank=True, null=True)
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
@@ -286,6 +293,18 @@ class SeatForNumberRow(models.Model):
         # 将 seat_num 填充为两位数
         self.seat_num = self.seat_num.zfill(2)
         super().save(*args, **kwargs)  # 确保保存实例
+
+        if not self.color:
+            self.color = self.zone.color
+
+        # 如果沒有指定票價，使用 zone 的票價
+        if self.price is None:
+            self.price = self.zone.price
+        
+        if self.area is None:
+            self.price = self.zone.area
+            
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['row_num']
