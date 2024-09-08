@@ -143,6 +143,8 @@ class SeatAdmin(admin.ModelAdmin):
 
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/activity/zone/change_list.html'
+    change_form_template = 'admin/activity/zone/change_form.html'
     
     list_display = ["event", "name", "area", "price"]
     inlines = [SeatsInline]
