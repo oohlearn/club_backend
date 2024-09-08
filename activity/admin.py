@@ -98,6 +98,8 @@ class SeatsForNumInline(admin.TabularInline):
 # 自定義欄位
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/activity/event/change_form.html'
+
     list_display = ("title", "date", "venue", "on_sell")
     search_fields = ("title", "venue")
     inlines = [ProgramInline, PlayerInline, ZoneInline, DiscountCodeInline, ZoneForNumInline]
@@ -107,6 +109,9 @@ class EventAdmin(admin.ModelAdmin):
         return format_html(f"{obj.date.year}.{obj.date.month}.{obj.date.day}")
 
     formatted_date.short_description = 'date'
+
+   
+
 
 
 @admin.register(Program)
@@ -138,6 +143,7 @@ class SeatAdmin(admin.ModelAdmin):
 
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
+    
     list_display = ["event", "name", "area", "price"]
     inlines = [SeatsInline]
     ordering = ["-price", "area"]  # 按價錢（price）排列
