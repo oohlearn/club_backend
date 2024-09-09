@@ -5,6 +5,9 @@ import pandas as pd
 from django.core.files.storage import FileSystemStorage
 from django.db.models.functions import Substr, Cast
 import re
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
 
 
 
@@ -69,23 +72,6 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
-    @classmethod
-    def process_excel(cls, file_path, event):
-        df = pd.read_excel(file_path)
-        for _, row in df.iterrows():
-            zone = cls.objects.create(
-                event=event,
-                area=row['區域名稱'],
-                row=row['排數名稱'],
-                start=row['起始座號'],
-                end=row['結束座號'],
-                price=row['票價']  # 假設 Excel 中有票價列
-            )
-            # 生成座位
-            for num in range(zone.start, zone.end + 1, 2):
-                seat_num = f"{zone.row}{num}"
-                Seat2.objects.create(zone=zone, seat_number=seat_num)
-
     class Meta:
         verbose_name = "活動"  # 自定義單數形式的名稱
         verbose_name_plural = "活動列表"  # 自定義複數形式的名稱
@@ -123,20 +109,9 @@ class Zone(models.Model):
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zone', verbose_name="對應的演出名稱")
     price = models.IntegerField(verbose_name="區域票價", help_text="下方可指定單一票的票價")
-    total = models.IntegerField(verbose_name="總數", blank=True, null=True)
+    remain = models.IntegerField(verbose_name="總數", blank=True, null=True)
     description = models.CharField(max_length=500, blank=True, null=True, verbose_name="票券說明（下拉式顯示）")
     help_words = models.CharField(max_length=500, blank=True, null=True, help_text="票券說明（直接顯示）")
-
-
-class DiscountCode(models.Model):
-    name = models.CharField(max_length=100, verbose_name="折扣碼名稱", help_text="例：團員優惠")
-    code = models.CharField(max_length=100, verbose_name="折扣碼", help_text="例：MEMBERROCK")
-    discount = models.CharField(max_length=50, verbose_name="折扣比例")
-    description = models.CharField(max_length=200, verbose_name="備註＆說明")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='discount_code')
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class Seat(models.Model):
@@ -153,6 +128,7 @@ class Seat(models.Model):
         ('#844200', '深棕'),
         ('#ADADAD', '灰(非賣票)')
     ]
+
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
     seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
@@ -179,7 +155,7 @@ class Seat(models.Model):
             self.price = self.zone.price
 
         if self.area is None:
-            self.price = self.zone.area
+            self.area = self.zone.area
 
         super().save(*args, **kwargs)
 
@@ -195,6 +171,26 @@ class Seat(models.Model):
 
     def __str__(self) -> str:
         return self.seat_num
+
+
+@receiver(post_save, sender=Seat)
+@receiver(post_delete, sender=Seat)
+def update_zone_remain(sender, instance, **kwargs):
+    zone = instance.zone
+    zone.remain = zone.seat.count()
+    zone.save()
+
+
+class DiscountCode(models.Model):
+    name = models.CharField(max_length=100, verbose_name="折扣碼名稱", help_text="例：團員優惠")
+    code = models.CharField(max_length=100, verbose_name="折扣碼", help_text="例：MEMBERROCK")
+    discount = models.CharField(max_length=50, verbose_name="折扣比例")
+    description = models.CharField(max_length=200, verbose_name="備註＆說明")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='discount_code')
+
+    def __str__(self) -> str:
+        return self.name
+
 
 # 排數為數字版
 class ZoneForNumberRow(models.Model):
@@ -229,7 +225,7 @@ class ZoneForNumberRow(models.Model):
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zoneForNumberRow', verbose_name="對應的演出名稱")
     price = models.IntegerField(verbose_name="區域票價", help_text="下方可指定單一票的票價")
-    total = models.IntegerField(verbose_name="總數", blank=True, null=True)
+    remain = models.IntegerField(verbose_name="總數", blank=True, null=True)
     description = models.CharField(max_length=500, blank=True, null=True, verbose_name="票券說明（下拉式顯示）")
     help_words = models.CharField(max_length=500, blank=True, null=True, help_text="票券說明（直接顯示）")
 
@@ -286,7 +282,7 @@ class SeatForNumberRow(models.Model):
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
-    is_sold = models.BooleanField(default=False, verbose_name="已售出", editable=False)
+    is_sold = models.BooleanField(default=False, verbose_name="已售出")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
 
     def save(self, *args, **kwargs):
@@ -300,10 +296,10 @@ class SeatForNumberRow(models.Model):
         # 如果沒有指定票價，使用 zone 的票價
         if self.price is None:
             self.price = self.zone.price
-        
+
         if self.area is None:
-            self.price = self.zone.area
-            
+            self.area = self.zone.area
+
         super().save(*args, **kwargs)
 
     class Meta:
@@ -324,6 +320,15 @@ class SeatForNumberRow(models.Model):
                 output_field=models.IntegerField()
             )
         ).order_by('letter', 'number')
+
+
+@receiver(post_save, sender=SeatForNumberRow)
+@receiver(post_delete, sender=SeatForNumberRow)
+def update_zoneForNumberRow_remain(sender, instance, **kwargs):
+    zone = instance.zone
+    zone.remain = zone.seat.filter(is_sold=False, not_sell=False).count()
+    zone.save()
+
 
 
 # TODO 待處理
@@ -364,3 +369,5 @@ class Seat2(models.Model):
 
     def __str__(self):
         return f"{self.zone} - {self.seat_number}"
+
+

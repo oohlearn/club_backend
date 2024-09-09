@@ -3,9 +3,12 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
-from .models import Event, Seat
-from .serializers import EventSerializer, SeatSerializer
+from .models import Event, Seat, Zone, ZoneForNumberRow
+from .serializers import EventSerializer, SeatSerializer, ZoneForNumberRowSerializer, ZoneSerializer
 # Create your views here.
 
 
@@ -50,3 +53,17 @@ class SeatViewSet(viewsets.ModelViewSet):
             select={'letter': 'SUBSTR(seat_num, 1, 1)',
                     'number': 'CAST(SUBSTR(seat_num, 2) AS INTEGER)'}
         ).order_by('letter', 'number')
+
+
+class ZoneViewSet(viewsets.ModelViewSet):
+    queryset = Zone.objects.all()
+    serializer_class = ZoneSerializer
+
+    @action(detail=True, methods=['patch'], url_path='update-remain')
+    def update_remain(self, request, pk=None, event_id=None):
+        zone = self.get_object()
+        remain = request.data.get('remain')
+        if remain is not None:
+            zone.remain = remain
+            zone.save()
+        return Response(ZoneSerializer(zone).data)

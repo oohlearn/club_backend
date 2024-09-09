@@ -30,10 +30,18 @@ class SeatSerializer(serializers.ModelSerializer):
 class ZoneSerializer(serializers.ModelSerializer):
     seat = SeatSerializer(many=True, required=False)
 
-
     class Meta:
         model = Zone
-        fields = ["id", "name", "eng_name", "area", "color", "price", "seat", "description", "help_words"]
+        fields = ["id", "name", "eng_name", "area", "remain", "color", "price", "seat", "description", "help_words"]
+
+    def get_remain(self, obj):
+        return obj.seat.filter(is_sold=False, not_sell=False).count()
+
+    def update(self, instance, validated_data):
+        remain = validated_data.get('remain', instance.remain)
+        instance.remain = remain
+        instance.save()
+        return instance
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
@@ -48,7 +56,7 @@ class SeatFroNumberRowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SeatForNumberRow
-        fields = ["row_num", "seat_num","area", "price", "color", "not_sell", "is_sold", "is_chair"]
+        fields = ["row_num", "seat_num", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
 
 
 class ZoneForNumberRowSerializer(serializers.ModelSerializer):
@@ -56,7 +64,7 @@ class ZoneForNumberRowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Zone
-        fields = ["id", "name", "eng_name", "area", "color", "price", "seat", "description", "help_words"]
+        fields = ["id", "name", "eng_name", "area", "remain", "color", "price", "seat", "description", "help_words"]
 
 
 class VenueSerializer(serializers.ModelSerializer):

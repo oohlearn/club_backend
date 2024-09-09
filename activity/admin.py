@@ -87,7 +87,7 @@ class ZoneForNumInline(admin.TabularInline):
 class SeatsForNumInline(admin.TabularInline):
     model = SeatForNumberRow
     extra = 30  # 初始显示的空白条目数量
-    fields = ["row_num", 'seat_num', "price", "color", "not_sell", "is_chair", "zone"]
+    fields = ["row_num", 'seat_num', "price", "color", "not_sell", "is_chair", "zone", "is_sold"]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'seat_num':
@@ -109,9 +109,6 @@ class EventAdmin(admin.ModelAdmin):
         return format_html(f"{obj.date.year}.{obj.date.month}.{obj.date.day}")
 
     formatted_date.short_description = 'date'
-
-   
-
 
 
 @admin.register(Program)
@@ -140,13 +137,12 @@ class SeatAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-
 @admin.register(Zone)
 class ZoneAdmin(admin.ModelAdmin):
     change_list_template = 'admin/activity/zone/change_list.html'
     change_form_template = 'admin/activity/zone/change_form.html'
-    
-    list_display = ["event", "name", "area", "price"]
+
+    list_display = ["event", "name", "area", "price", "remain"]
     inlines = [SeatsInline]
     ordering = ["-price", "area"]  # 按價錢（price）排列
     search_fields = ['event__title']
@@ -154,7 +150,7 @@ class ZoneAdmin(admin.ModelAdmin):
 
 @admin.register(ZoneForNumberRow)
 class ZoneForNumberRowAdmin(admin.ModelAdmin):
-    list_display = ["event", "name", "area", "price"]
+    list_display = ["event", "name", "area", "price", "remain"]
     inlines = [SeatsForNumInline]
     ordering = ["-price", "area"]  # 按價錢（price）排列
     search_fields = ['event__title']
