@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from shopping.views import ProductViewSet
+from shopping.views import ProductViewSet, OrderViewSet, ProductCodeViewSet
 
 from activity.views import EventViewSet, ZoneViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
@@ -27,6 +27,9 @@ router.register(r"conductors", ConductorViewSet, basename="conductor")
 router.register(r"introduction", IntroductionViewSet, basename="introduction")
 router.register(r"home_content", HomeContentViewSet, basename="homeContent")
 router.register(r'zones', ZoneViewSet, basename="zones")
+router.register(r'orders', OrderViewSet, basename="orders")
+router.register(r'productCode', ProductCodeViewSet, basename="productCode")
+
 
 
 urlpatterns = [

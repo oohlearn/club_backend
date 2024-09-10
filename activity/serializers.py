@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, Zone, Seat, Venue, Program, DiscountCode, Player, SeatForNumberRow, ZoneForNumberRow
+from .models import Event, Zone, Seat, Venue, Program, TicketDiscountCode, Player, SeatForNumberRow, ZoneForNumberRow
 import re
 
 
@@ -44,11 +44,11 @@ class ZoneSerializer(serializers.ModelSerializer):
         return instance
 
 
-class DiscountCodeSerializer(serializers.ModelSerializer):
+class TicketDiscountCodeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = DiscountCode
-        fields = ["name", "code", "discount", "description"]
+        model = TicketDiscountCode
+        fields = ["name", "code", "discount", "is_valid", "description"]
 
 
 # Number Row
@@ -83,7 +83,7 @@ class EventSerializer(serializers.ModelSerializer):
     program = ProgramSerializer(many=True)
     zone = ZoneSerializer(many=True)
     venue = VenueSerializer()
-    discount_code = DiscountCodeSerializer(many=True)
+    ticket_discount_code = TicketDiscountCodeSerializer(many=True)
     date = serializers.SerializerMethodField()
     time = serializers.SerializerMethodField()
     weekday = serializers.SerializerMethodField()
@@ -94,7 +94,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ["id", "title", "date", "weekday", "time", "venue", "price_type", "poster",
                   "description", "program", "player", "ticket_system_url", "zone", "discount_code",
-                  "zoneForNumberRow"]
+                  "zoneForNumberRow", "ticket_discount_code"]
 
     def get_date(self, obj):
         return obj.date.strftime("%Y-%m-%d") if obj.date else None
@@ -107,23 +107,3 @@ class EventSerializer(serializers.ModelSerializer):
             weekdays = ["一", "二", "三", "四", "五", "六", "日"]
             return weekdays[obj.date.weekday()]
         return None
-
-
-
-
-
-# TODO尚未完成票券部分
-# 票
-# class TicketOrderSerializer(serializers.Serializer):
-#     STATE_CHOICES = [
-#        ("diy", "自行選位"),
-#        ("com", "電腦配位"),
-#     ]
-#     ticket_type = serializers.CharField(max_length=500)
-#     price = serializers.IntegerField()
-#     amount = serializers.IntegerField()
-#     seats = serializers.CharField(max_length=800)
-
-#     class Meta:
-#         model = Product
-#         fields = ["id", ]

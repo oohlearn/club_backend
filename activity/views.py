@@ -42,10 +42,11 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = Event.objects.filter(id=id)
         return queryset
 
+
 # TODO 座位在API的排序順序
 class SeatViewSet(viewsets.ModelViewSet):
     serializer_class = SeatSerializer
-    queryset = Event.objects.all()
+    queryset = Seat.objects.all()
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

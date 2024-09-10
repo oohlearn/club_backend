@@ -9,8 +9,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 
-
-
 # Create your models here.
 class Program(models.Model):
     title = models.CharField(max_length=500, verbose_name="曲目名稱")
@@ -25,7 +23,6 @@ class Program(models.Model):
         return self.title
 
 
-# Create your models here.
 class Player(models.Model):
     name = models.CharField(max_length=500, verbose_name="姓名")
     title = models.CharField(max_length=500, verbose_name="職稱、腳色", blank=True)
@@ -181,12 +178,13 @@ def update_zone_remain(sender, instance, **kwargs):
     zone.save()
 
 
-class DiscountCode(models.Model):
+class TicketDiscountCode(models.Model):
     name = models.CharField(max_length=100, verbose_name="折扣碼名稱", help_text="例：團員優惠")
     code = models.CharField(max_length=100, verbose_name="折扣碼", help_text="例：MEMBERROCK")
-    discount = models.CharField(max_length=50, verbose_name="折扣比例")
+    discount = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="折扣比例，請直接寫小數，例：0.8")  # 折扣率，例如0.9表示9折
     description = models.CharField(max_length=200, verbose_name="備註＆說明")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='discount_code')
+    is_valid = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.name
@@ -320,6 +318,9 @@ class SeatForNumberRow(models.Model):
                 output_field=models.IntegerField()
             )
         ).order_by('letter', 'number')
+    
+    def __str__(self) -> str:
+        return f"{self.area}區{self.row_num}排{self.seat_num}號"
 
 
 @receiver(post_save, sender=SeatForNumberRow)

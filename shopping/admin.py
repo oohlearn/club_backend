@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cart, Product, CartItem, Order, OrderItem, Customer, Photo, Size
+from .models import Product, Order, OrderItem, Customer, Photo, Size, ProductCode
 from django.forms import TextInput
 
 
@@ -33,10 +33,23 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']  # 添加搜索功能
 
 
-# Register your models here.
-admin.site.register(Cart)
-admin.site.register(CartItem)
-admin.site.register(OrderItem)
-admin.site.register(Order)
-admin.site.register(Customer)
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "customer", "total_price", "status")
+    search_fields = ['customer']
 
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    search_fields = ['title']
+
+
+@admin.register(ProductCode)
+class ProductCodeAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "discount", "is_valid", "end_date")
+    list_editable = ("is_valid",)
+    search_fields = ['name', "code", "description"]
+
+
+# Register your models here.
+admin.site.register(Customer)

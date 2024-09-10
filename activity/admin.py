@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html  #修改日期用
-from .models import Event, Program, Zone, Seat, Venue, DiscountCode, Player, ZoneForNumberRow, SeatForNumberRow
+from .models import Event, Program, Zone, Seat, Venue, TicketDiscountCode, Player, ZoneForNumberRow, SeatForNumberRow
 from django.forms import TextInput
 
 
@@ -59,8 +59,8 @@ class PhotoInline(admin.TabularInline):
 
 
 class DiscountCodeInline(admin.TabularInline):
-    model = DiscountCode
-    extra = 2
+    model = TicketDiscountCode
+    extra = 1
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'code':
