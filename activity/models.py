@@ -318,7 +318,7 @@ class SeatForNumberRow(models.Model):
                 output_field=models.IntegerField()
             )
         ).order_by('letter', 'number')
-    
+
     def __str__(self) -> str:
         return f"{self.area}區{self.row_num}排{self.seat_num}號"
 

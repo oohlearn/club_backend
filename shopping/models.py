@@ -140,7 +140,7 @@ class Order(models.Model):
         self.refresh_from_db()
 
     def calculate_total_price(self):
-        total = sum(item.calculate_subtotal() for item in self.items.all())
+        total = sum(item.calculate_subtotal() for item in self.orderItem.all())
 
         if total > 500:
             self.need_deliver_paid = False
@@ -159,6 +159,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="orderItem", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    size = models.CharField(max_length=20, verbose_name="尺寸或顏色", null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     ticket_discount_code = models.ForeignKey(TicketDiscountCode,
                                              related_name="ticket_discount_code",
@@ -202,7 +203,7 @@ class OrderItem(models.Model):
         return int(Decimal(subtotal).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
 
     def update_order_total(self):
-        order_total = sum(item.subtotal for item in self.order.items.all())
+        order_total = sum(item.subtotal for item in self.order.orderItem.all())
         self.order.total_amount = order_total
         self.order.save()
 

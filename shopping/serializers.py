@@ -54,7 +54,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ["product", "quantity", "ticket_discount_code", "seat",
+        fields = ["product", "size", "quantity", "ticket_discount_code", "seat",
                   "seat", "seat_v2", "product_code", "subtotal"]
 
 

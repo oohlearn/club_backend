@@ -31,7 +31,6 @@ router.register(r'orders', OrderViewSet, basename="orders")
 router.register(r'productCode', ProductCodeViewSet, basename="productCode")
 
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/information/', include(router.urls)),
