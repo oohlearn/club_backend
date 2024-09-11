@@ -145,8 +145,6 @@ class IndexStory(models.Model):
         verbose_name_plural = "封面故事列表"  # 自定義複數形式的名稱
 
 
-    
-
 # TODO 修改日期格式
 class Experience(models.Model):
     date = models.DateField(verbose_name="日期", help_text="顯示範例：113年2月")

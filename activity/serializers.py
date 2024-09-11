@@ -83,7 +83,7 @@ class EventSerializer(serializers.ModelSerializer):
     program = ProgramSerializer(many=True)
     zone = ZoneSerializer(many=True)
     venue = VenueSerializer()
-    ticket_discount_code = TicketDiscountCodeSerializer(many=True)
+    ticket_discount_code = TicketDiscountCodeSerializer(many=True, required=False)
     date = serializers.SerializerMethodField()
     time = serializers.SerializerMethodField()
     weekday = serializers.SerializerMethodField()

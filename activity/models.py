@@ -4,7 +4,6 @@ from shortuuidfield import ShortUUIDField
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
 from django.db.models.functions import Substr, Cast
-import re
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -58,7 +57,7 @@ class Event(models.Model):
     title = models.CharField(max_length=500, verbose_name="活動/演出標題")
     date = models.DateTimeField(verbose_name="日期時間")
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, verbose_name="場地", blank=True, null=True)
-    price_type = models.CharField(max_length=100, verbose_name="票價（例：200/300/500）")
+    price_type = models.CharField(max_length=100, verbose_name="所有票價（例：200/300/500）")
     poster = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="海報圖")
     description = HTMLField(verbose_name="活動介紹", blank=True)
     ticket_system_url = models.CharField(max_length=1000, blank=True, null=True, verbose_name="外部售票系統網址")
@@ -102,11 +101,11 @@ class Zone(models.Model):
     ]
     name = models.CharField(max_length=50, verbose_name="票種")
     eng_name = models.CharField(max_length=50, verbose_name="票種英文簡稱")
-    area = models.CharField(max_length=50, choices=AREA_CHOICES, verbose_name="區域相對位置", help_text="例：普通票A區、普通票B區", blank=True, null=True)
+    area = models.CharField(max_length=50, choices=AREA_CHOICES, verbose_name="區域相對位置", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='zone', verbose_name="對應的演出名稱")
-    price = models.IntegerField(verbose_name="區域票價", help_text="下方可指定單一票的票價")
-    remain = models.IntegerField(verbose_name="總數", blank=True, null=True)
+    price = models.IntegerField(verbose_name="區域票價", help_text="可一次指定此區所有票的票價")
+    remain = models.IntegerField(verbose_name="剩餘票數", blank=True, null=True)
     description = models.CharField(max_length=500, blank=True, null=True, verbose_name="票券說明（下拉式顯示）")
     help_words = models.CharField(max_length=500, blank=True, null=True, help_text="票券說明（直接顯示）")
 

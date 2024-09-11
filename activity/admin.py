@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html  #修改日期用
+from django.utils.html import format_html  # 修改日期用
 from .models import Event, Program, Zone, Seat, Venue, TicketDiscountCode, Player, ZoneForNumberRow, SeatForNumberRow
 from django.forms import TextInput
 

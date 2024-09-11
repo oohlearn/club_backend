@@ -124,6 +124,7 @@ class Order(models.Model):
     need_deliver_paid = models.BooleanField(default=True, verbose_name="要加運費")
     total_price = models.IntegerField(null=True, verbose_name="訂單總金額", blank=True)
     status = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
+    deliver_price = models.IntegerField(null=True, verbose_name="運費金額", blank=True, default=70)
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -147,7 +148,7 @@ class Order(models.Model):
 
         if self.need_deliver_paid:
             # 假設運費是固定的100元
-            total += 100
+            total += self.deliver_price
 
         # 將結果四捨五入到最接近的整數
         return int(Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
@@ -155,6 +156,7 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.created_at.strftime('%Y-%m-%d %H:%M')} :  {self.customer.name}"
 
+# TODO 優惠碼待修正
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="orderItem", on_delete=models.CASCADE)
@@ -184,7 +186,7 @@ class OrderItem(models.Model):
         subtotal = 0
         if self.product:
             product_price = self.product.price * self.quantity
-            if self.product_code.is_valid:
+            if self.product_code:
                 product_price *= self.product_code.discount
             subtotal += product_price
 
