@@ -160,3 +160,5 @@ class ZoneForNumberRowAdmin(admin.ModelAdmin):
 class SeatForNumberRowAdmin(admin.ModelAdmin):
     list_display = ["row_num", 'seat_num', "is_sold"]
     search_fields = ["seat_num", "row_num"]
+
+

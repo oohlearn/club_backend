@@ -133,6 +133,7 @@ class Seat(models.Model):
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
     is_sold = models.BooleanField(default=False, verbose_name="已售出")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
+    event_id = models.CharField(max_length=20, blank=True, null=True, editable=False)
 
     def save(self, *args, **kwargs):
         # 在保存之前調用 clean 方法進行驗證
@@ -142,6 +143,9 @@ class Seat(models.Model):
         letter = self.seat_num[0]
         number = self.seat_num[1:].zfill(2)  # 將數字部分填充到至少兩位
         self.seat_num = f"{letter}{number}"
+
+        if not self.event_id:
+            self.event_id = self.zone.event.id
 
         if not self.color:
             self.color = self.zone.color
@@ -182,7 +186,7 @@ class TicketDiscountCode(models.Model):
     code = models.CharField(max_length=100, verbose_name="折扣碼", help_text="例：MEMBERROCK")
     discount = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="折扣比例，請直接寫小數，例：0.8")  # 折扣率，例如0.9表示9折
     description = models.CharField(max_length=200, verbose_name="備註＆說明")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='discount_code')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='ticket_discount_code')
     is_valid = models.BooleanField(default=False)
 
     def __str__(self) -> str:
@@ -281,6 +285,7 @@ class SeatForNumberRow(models.Model):
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
     is_sold = models.BooleanField(default=False, verbose_name="已售出")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
+    event_id = models.CharField(max_length=20, blank=True, null=True, editable=False)
 
     def save(self, *args, **kwargs):
         # 将 seat_num 填充为两位数
@@ -289,6 +294,9 @@ class SeatForNumberRow(models.Model):
 
         if not self.color:
             self.color = self.zone.color
+
+        if not self.event_id:
+            self.event_id = self.zone.event.id
 
         # 如果沒有指定票價，使用 zone 的票價
         if self.price is None:

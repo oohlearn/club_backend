@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Event, Zone, Seat, Venue, Program, TicketDiscountCode, Player, SeatForNumberRow, ZoneForNumberRow
+from .models import (Event, Zone, Seat, Venue, Program, TicketDiscountCode,
+                     Player, SeatForNumberRow, ZoneForNumberRow)
 import re
 
 
@@ -24,7 +25,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ["seat_num","area", "price", "color", "not_sell", "is_sold", "is_chair"]
+        fields = ["seat_num", "event_id", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
 
 
 class ZoneSerializer(serializers.ModelSerializer):
@@ -56,14 +57,14 @@ class SeatFroNumberRowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SeatForNumberRow
-        fields = ["row_num", "seat_num", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
+        fields = ["row_num", "seat_num", "event_id", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
 
 
 class ZoneForNumberRowSerializer(serializers.ModelSerializer):
     seat = SeatFroNumberRowSerializer(many=True, required=False)
 
     class Meta:
-        model = Zone
+        model = ZoneForNumberRow
         fields = ["id", "name", "eng_name", "area", "remain", "color", "price", "seat", "description", "help_words"]
 
 
@@ -83,7 +84,7 @@ class EventSerializer(serializers.ModelSerializer):
     program = ProgramSerializer(many=True)
     zone = ZoneSerializer(many=True)
     venue = VenueSerializer()
-    ticket_discount_code = TicketDiscountCodeSerializer(many=True, required=False)
+    ticket_discount_code = TicketDiscountCodeSerializer(many=True)
     date = serializers.SerializerMethodField()
     time = serializers.SerializerMethodField()
     weekday = serializers.SerializerMethodField()
@@ -93,8 +94,9 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["id", "title", "date", "weekday", "time", "venue", "price_type", "poster",
-                  "description", "program", "player", "ticket_system_url", "zone", "discount_code",
-                  "zoneForNumberRow", "ticket_discount_code"]
+                  "description", "program", "player", "ticket_system_url",
+                  "ticket_discount_code", "zone",
+                  "zoneForNumberRow"]
 
     def get_date(self, obj):
         return obj.date.strftime("%Y-%m-%d") if obj.date else None
