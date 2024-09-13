@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Video, Album, Conductor, Experience, Introduction,
-                     IndexStory, Article, Tag, Photo, Teacher, HomeContent)
+                     IndexStory, Article, Tag, Photo, Teacher, HomeContent,
+                     Contact)
 from activity.serializers import EventSerializer
 
 
@@ -109,3 +110,10 @@ class HomeContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeContent
         fields = ["events", "articles"]
+
+
+# Contact
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = '__all__'

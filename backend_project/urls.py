@@ -4,8 +4,10 @@ from shopping.views import ProductViewSet, OrderViewSet, ProductCodeViewSet
 
 from activity.views import EventViewSet, ZoneViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
-                               IndexStoryViewSet, TeacherViewSet, HomeContentViewSet,
-                               ExperienceViewSet, ConductorViewSet, IntroductionViewSet)
+                               IndexStoryViewSet, TeacherViewSet,
+                               HomeContentViewSet, create_contact,
+                               ExperienceViewSet, ConductorViewSet,
+                               IntroductionViewSet)
 # API
 from rest_framework import routers
 # static files
@@ -37,5 +39,6 @@ urlpatterns = [
     path("api/shopping/", include(router.urls)),
     path("api/activity/", include(router.urls)),
     path('activity/events/<int:event_id>/zones/<int:pk>/', ZoneViewSet.as_view({'patch': 'update_remain'}), name='zone-update-remain'),
+    path('api/contact/', create_contact, name='create_contact'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls

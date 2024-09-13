@@ -4,6 +4,13 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Contact
+from .serializers import ContactSerializer
+from rest_framework.decorators import api_view
+
+
+
+
 
 # Create your views here.
 from .models import (Video, IndexStory, Album, Article, Experience, Conductor,
@@ -234,3 +241,13 @@ class IntroductionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Introduction.objects.all()
         return queryset
+
+
+# 意見回饋
+@api_view(['POST'])
+def create_contact(request):
+    serializer = ContactSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
