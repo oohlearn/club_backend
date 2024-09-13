@@ -20,6 +20,7 @@ class Size(models.Model):
     description = models.CharField(max_length=255, verbose_name="備註，例：尺寸描述", blank=True, null=True)
 
 
+# TODO 處理暫售量
 class Product(models.Model):
     STATE_CHOICES = [
         ("特價中", "特價中"),
@@ -39,6 +40,7 @@ class Product(models.Model):
     category = models.CharField(max_length=500, verbose_name="商品種類", choices=CATEGORY_CHOICES, null=True)
     quantity = models.IntegerField(verbose_name="庫存總量", blank=True, null=True)
     sold_qty = models.IntegerField(verbose_name="已售出總量", blank=True, null=True)
+    pre_sold_qty = models.IntegerField(verbose_name="暫時售出量", blank=True, null=True)
     description = HTMLField(verbose_name="商品敘述", blank=True, null=True)
     state_tag = models.CharField(max_length=100, blank=True, null=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
@@ -75,6 +77,10 @@ class ProductCode(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    
+    class Meta:
+        verbose_name = "商品優惠碼"
+        verbose_name_plural = "商品優惠碼"
 
 
 # 訂單
@@ -146,9 +152,9 @@ class Order(models.Model):
         if total > 500:
             self.need_deliver_paid = False
 
-        if self.need_deliver_paid:
-            # 假設運費是固定的100元
-            total += self.deliver_price
+        # if self.need_deliver_paid:
+        #     # 假設運費是固定的100元
+        #     total += self.deliver_price
 
         # 將結果四捨五入到最接近的整數
         return int(Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
