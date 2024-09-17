@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
 from shopping.views import ProductViewSet, OrderViewSet, ProductCodeViewSet
-
+from user.views import create_contact
 from activity.views import EventViewSet, ZoneViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
                                IndexStoryViewSet, TeacherViewSet,
-                               HomeContentViewSet, create_contact,
+                               HomeContentViewSet,
                                ExperienceViewSet, ConductorViewSet,
                                IntroductionViewSet)
 # API

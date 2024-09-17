@@ -121,9 +121,6 @@ class Customer(models.Model):
         return f"{self.postal_code} {self.address_city}{self.address_district}{self.address}"
 
 
-
-
-
 # TODO 優惠碼待修正
 class Cart(models.Model):
     STATE_CHOICES = [

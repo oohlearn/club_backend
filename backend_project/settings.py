@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "information",
     "shopping",
     "activity",
+    "user",
     'corsheaders',  # 讓前端跟API串
     "rest_framework",
     'taggit',  # 使用tag的第三方套件,
