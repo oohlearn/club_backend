@@ -43,7 +43,6 @@ class OrderAdmin(admin.ModelAdmin):
 class CartAdmin(admin.ModelAdmin):
     search_fields = ['title', "total_price"]
     list_display = ("created_at", "total_price")
-    
 
 
 @admin.register(CartItem)

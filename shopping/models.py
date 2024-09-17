@@ -9,6 +9,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.dispatch import receiver
 from decouple import config
 from django.db.models.signals import post_save, post_delete
+from django.utils import timezone
+
 
 
 
@@ -88,7 +90,6 @@ class ProductCode(models.Model):
         verbose_name_plural = "商品優惠碼"
 
 
-# 訂單
 class Customer(models.Model):
     PAID_METHOD_CHOICE = [
         ("credit_card", "信用卡"),
@@ -120,23 +121,7 @@ class Customer(models.Model):
         return f"{self.postal_code} {self.address_city}{self.address_district}{self.address}"
 
 
-class Order(models.Model):
-    STATE_CHOICES = [
-        ("unpaid", "未付款"),
-        ("paid", "已付款"),
-        ("processing", "處理中"),
-        ("shipped", "已出貨"),
-        ("delivered", "已送達"),
-        ("completed", "已完成"),
-        ("cancelled", "已取消"),
-        ("refunded", "已退款"),
 
-    ]
-    id = ShortUUIDField(primary_key=True, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="訂單總金額", null=True)
-    shipping_fee = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="運費", null=True)
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="折扣金額", null=True)
 
 
 # TODO 優惠碼待修正
@@ -145,9 +130,11 @@ class Cart(models.Model):
        ("unpaid", "未付款"),
        ("undelivered", "已付款，未出貨"),
        ("delivered", "已出貨"),
-       ("finished", "已出貨"),
+        ("delivered", "已送達"),
+       ("finished", "已完成"),
        ("problem",  "問題單"),
        ("canceled",  "已取消"),
+       ("refunded", "已退款"),
     ]
     created_at = models.DateTimeField(auto_now_add=True)
     customer = models.ForeignKey(Customer, name="customer", verbose_name="訂購人資料", on_delete=models.CASCADE)
@@ -160,7 +147,7 @@ class Cart(models.Model):
     need_deliver_paid = models.BooleanField(default=True, verbose_name="要加運費")
     total_price = models.IntegerField(null=True, verbose_name="訂單總金額", blank=True)
     status = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
-    deliver_price = models.IntegerField(null=True, verbose_name="運費金額", blank=True, default=config("DELIVER_PAID"))
+    shipping_fee = models.IntegerField(null=True, verbose_name="運費金額", blank=True, default=config("DELIVER_PAID"))
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -173,14 +160,14 @@ class Cart(models.Model):
         total = self.calculate_total_price()
         Cart.objects.filter(pk=self.pk).update(total_price=total,
                                                need_deliver_paid=self.need_deliver_paid,
-                                               deliver_price=self.deliver_price)
+                                               deliver_price=self.shipping_fee)
         # 重新從數據庫加載更新後的值
         self.refresh_from_db()
 
     def calculate_total_price(self):
         products_total = sum(item.get_product_subtotal() for item in self.cartItem.all())
         tickets_total = sum(item.get_ticket_subtotal() for item in self.cartItem.all())
-        total = products_total + tickets_total + self.deliver_price
+        total = products_total + tickets_total + self.shipping_fee
 
         if self.product_code:
             products_total *= self.product_code.discount
@@ -191,9 +178,9 @@ class Cart(models.Model):
             self.need_deliver_paid = False
 
         if not self.need_deliver_paid:
-            self.deliver_price = 0
+            self.shipping_fee = 0
         else:
-            self.deliver_price = config("DELIVER_PAID")
+            self.shipping_fee = config("DELIVER_PAID")
 
         # 將結果四捨五入到最接近的整數
         return int(Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
@@ -240,6 +227,54 @@ class CartItem(models.Model):
             items.append(f"票券：{self.seat_v2.zone.event.title} {self.seat_v2.area}區{self.seat_v2.row_num}排{self.seat_v2.seat_num}號")
         return ", ".join(items) if items else "Empty order item"
 
+
+# 訂單
+class Order(models.Model):
+    STATE_CHOICES = [
+        ('pending', '待處理'),
+        ('processing', '處理中'),
+        ('shipped', '已出貨'),
+        ('delivered', '已送達'),
+        ('cancelled', '已取消'),
+        ('refunded', '已退款'),
+    ]
+    id = ShortUUIDField(primary_key=True, editable=False)
+    cart = models.OneToOneField(Cart, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, verbose_name="創建時間")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最後更新時間")
+    status = models.CharField(max_length=20, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
+    total_amount = models.IntegerField(verbose_name="訂單總金額", blank=True, null=True)
+    notes = models.TextField(blank=True, verbose_name="訂單備註", null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # 如果是新建訂單
+            self.sync_with_cart()
+        super().save(*args, **kwargs)
+
+    def sync_with_cart(self):
+        self.total_amount = self.cart.total_price
+
+    def update_status(self, new_status):
+        if new_status in dict(self.STATE_CHOICES):
+            self.status = new_status
+            self.save()
+        else:
+            raise ValidationError("無效的訂單狀態")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "訂單"
+        verbose_name_plural = "訂單列表"
+
+
+@receiver(post_save, sender=Cart)
+def create_or_update_order(sender, instance, created, **kwargs):
+    if created:
+        Order.objects.create(cart=instance)
+    else:
+        if hasattr(instance, 'order'):
+            instance.order.sync_with_cart()
+            instance.order.save()
 
 
 @receiver(post_save, sender=CartItem)

@@ -53,7 +53,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ["product", "size", "quantity",
-                  "seat", "seat_v2", "subtotal"]
+                  "seat", "seat_v2"]
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -63,8 +63,10 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ["cartItem", "ticket_discount_code",
-                  "product_code", "total_price"]
+        fields = ["created_at", "cartItem", "customer", "ticket_discount_code",
+                  "product_code", "total_price", "need_deliver_paid", "status",
+                  "deliver_price"]
+
 
 # 訂單
 class OrderSerializer(serializers.ModelSerializer):
