@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Order, OrderItem, Customer, Photo, Size, ProductCode
+from .models import Product, Order, Cart, Customer, Photo, Size, ProductCode, CartItem
 from django.forms import TextInput
 
 
@@ -35,12 +35,19 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("created_at", "customer", "total_price", "status")
+    list_display = ("created_at",)
     search_fields = ['customer']
 
 
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    search_fields = ['title', "total_price"]
+    list_display = ("created_at", "total_price")
+    
+
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
 

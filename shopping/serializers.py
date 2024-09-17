@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Photo, Size, ProductCode, Order, OrderItem, Customer
+from .models import Product, Photo, Size, ProductCode, Order, Cart, Customer, CartItem
 from activity.serializers import TicketDiscountCodeSerializer, SeatFroNumberRowSerializer, SeatSerializer
 
 
@@ -44,22 +44,31 @@ class CustomerSerialize(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# 訂單
-class OrderItemSerializer(serializers.ModelSerializer):
+# 購物車
+class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(required=False)
-    ticket_discount_code = TicketDiscountCodeSerializer(required=False)
-    product_code = ProductDiscountCodeSerializer(required=False)
     seat = SeatSerializer(required=False)
     seat_v2 = SeatFroNumberRowSerializer(required=False)
 
     class Meta:
-        model = OrderItem
-        fields = ["product", "size", "quantity", "ticket_discount_code", "seat",
-                  "seat", "seat_v2", "product_code", "subtotal"]
+        model = Cart
+        fields = ["product", "size", "quantity",
+                  "seat", "seat_v2", "subtotal"]
 
 
+class CartSerializer(serializers.ModelSerializer):
+    cartItem = CartItemSerializer(required=False)
+    ticket_discount_code = TicketDiscountCodeSerializer(required=False)
+    product_code = ProductDiscountCodeSerializer(required=False)
+
+    class Meta:
+        model = Cart
+        fields = ["cartItem", "ticket_discount_code",
+                  "product_code", "total_price"]
+
+# 訂單
 class OrderSerializer(serializers.ModelSerializer):
-    orderItem = OrderItemSerializer(many=True)
+    orderItem = CartItemSerializer(many=True)
     customer = CustomerSerialize()
 
     class Meta:

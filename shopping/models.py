@@ -6,6 +6,11 @@ from shortuuidfield import ShortUUIDField
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal, ROUND_HALF_UP
+from django.dispatch import receiver
+from decouple import config
+from django.db.models.signals import post_save, post_delete
+
+
 
 
 # 商品相關
@@ -117,44 +122,78 @@ class Customer(models.Model):
 
 class Order(models.Model):
     STATE_CHOICES = [
-       ("unpaid", "未付款"),
-       ("undelivered", "未出貨"),
-       ("finished", "已完成"),
-       ("problem",  "問題單"),
-       ("canceled",  "已取消"),
+        ("unpaid", "未付款"),
+        ("paid", "已付款"),
+        ("processing", "處理中"),
+        ("shipped", "已出貨"),
+        ("delivered", "已送達"),
+        ("completed", "已完成"),
+        ("cancelled", "已取消"),
+        ("refunded", "已退款"),
 
     ]
-    id = ShortUUIDField(primary_key=True, editable=False)    
+    id = ShortUUIDField(primary_key=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="訂單總金額", null=True)
+    shipping_fee = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="運費", null=True)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="折扣金額", null=True)
+
+
+# TODO 優惠碼待修正
+class Cart(models.Model):
+    STATE_CHOICES = [
+       ("unpaid", "未付款"),
+       ("undelivered", "已付款，未出貨"),
+       ("delivered", "已出貨"),
+       ("finished", "已出貨"),
+       ("problem",  "問題單"),
+       ("canceled",  "已取消"),
+    ]
     created_at = models.DateTimeField(auto_now_add=True)
     customer = models.ForeignKey(Customer, name="customer", verbose_name="訂購人資料", on_delete=models.CASCADE)
+    ticket_discount_code = models.ForeignKey(TicketDiscountCode,
+                                             related_name="ticket_discount_code",
+                                             on_delete=models.SET_NULL, null=True, blank=True)
+    product_code = models.ForeignKey(ProductCode,
+                                     related_name="product_code",
+                                     on_delete=models.SET_NULL, null=True, blank=True)
     need_deliver_paid = models.BooleanField(default=True, verbose_name="要加運費")
     total_price = models.IntegerField(null=True, verbose_name="訂單總金額", blank=True)
     status = models.CharField(max_length=100, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")
-    deliver_price = models.IntegerField(null=True, verbose_name="運費金額", blank=True, default=70)
+    deliver_price = models.IntegerField(null=True, verbose_name="運費金額", blank=True, default=config("DELIVER_PAID"))
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)  # 首先保存對象以獲得 primary key
         if is_new:
             self.total_price = 0  # 初始化總價為0
-        else:
-            self.update_total_price()  # 對於已存在的訂單，更新總價
+        self.update_total_price()  # 對於已存在的訂單，更新總價
 
     def update_total_price(self):
         total = self.calculate_total_price()
-        Order.objects.filter(pk=self.pk).update(total_price=total, need_deliver_paid=self.need_deliver_paid)
+        Cart.objects.filter(pk=self.pk).update(total_price=total,
+                                               need_deliver_paid=self.need_deliver_paid,
+                                               deliver_price=self.deliver_price)
         # 重新從數據庫加載更新後的值
         self.refresh_from_db()
 
     def calculate_total_price(self):
-        total = sum(item.calculate_subtotal() for item in self.orderItem.all())
+        products_total = sum(item.get_product_subtotal() for item in self.cartItem.all())
+        tickets_total = sum(item.get_ticket_subtotal() for item in self.cartItem.all())
+        total = products_total + tickets_total + self.deliver_price
 
-        if total > 500:
+        if self.product_code:
+            products_total *= self.product_code.discount
+        if self.ticket_discount_code:
+            tickets_total *= self.ticket_discount_code.discount
+
+        if tickets_total > 0:
             self.need_deliver_paid = False
 
-        # if self.need_deliver_paid:
-        #     # 假設運費是固定的100元
-        #     total += self.deliver_price
+        if not self.need_deliver_paid:
+            self.deliver_price = 0
+        else:
+            self.deliver_price = config("DELIVER_PAID")
 
         # 將結果四捨五入到最接近的整數
         return int(Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
@@ -162,58 +201,34 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.created_at.strftime('%Y-%m-%d %H:%M')} :  {self.customer.name}"
 
-# TODO 優惠碼待修正
 
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="orderItem", on_delete=models.CASCADE)
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, related_name="cartItem", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     size = models.CharField(max_length=20, verbose_name="尺寸或顏色", null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
-    ticket_discount_code = models.ForeignKey(TicketDiscountCode,
-                                             related_name="ticket_discount_code",
-                                             on_delete=models.SET_NULL, null=True, blank=True)
     seat = models.ForeignKey(Seat, on_delete=models.CASCADE, null=True, blank=True)
     seat_v2 = models.ForeignKey(SeatForNumberRow, on_delete=models.CASCADE, null=True, blank=True)
-    product_code = models.ForeignKey(ProductCode, 
-                                     related_name="product_code",
-                                     on_delete=models.SET_NULL, null=True, blank=True)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def get_product_subtotal(self):
+        if self.product:
+            return self.product.price * self.quantity
+        return 0
+
+    def get_ticket_subtotal(self):
+        if self.seat:
+            return self.seat.price
+        if self.seat_v2:
+            return self.seat_v2.price
+        return 0
 
     def clean(self):
         if not self.product and not self.seat and not self.seat_v2:
             raise ValidationError("At least one of product, seat, or seat_v2 must be specified.")
 
     def save(self, *args, **kwargs):
-        self.subtotal = self.calculate_subtotal()
         super().save(*args, **kwargs)
-        self.update_order_total()
-
-    def calculate_subtotal(self):
-        subtotal = 0
-        if self.product:
-            product_price = self.product.price * self.quantity
-            if self.product_code:
-                product_price *= self.product_code.discount
-            subtotal += product_price
-
-        if self.seat:
-            seat_price = self.seat.price
-            if self.ticket_discount_code.is_valid:
-                seat_price *= self.ticket_discount_code.discount
-            subtotal += seat_price
-
-        if self.seat_v2:
-            seat_v2_price = self.seat_v2.price
-            if self.ticket_discount_code:
-                seat_v2_price *= self.ticket_discount_code.discount
-            subtotal += seat_v2_price
-
-        return int(Decimal(subtotal).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
-
-    def update_order_total(self):
-        order_total = sum(item.subtotal for item in self.order.orderItem.all())
-        self.order.total_amount = order_total
-        self.order.save()
+        self.cart.update_total_price()
 
     def __str__(self):
         items = []
@@ -224,3 +239,17 @@ class OrderItem(models.Model):
         if self.seat_v2:
             items.append(f"票券：{self.seat_v2.zone.event.title} {self.seat_v2.area}區{self.seat_v2.row_num}排{self.seat_v2.seat_num}號")
         return ", ".join(items) if items else "Empty order item"
+
+
+
+@receiver(post_save, sender=CartItem)
+def update_cart_total_on_cartItem_save(sender, instance, **kwargs):
+    instance.cart.update_total_price()
+
+@receiver(post_delete, sender=CartItem)
+def update_cart_total_on_cartitem_delete(sender, instance, **kwargs):
+    instance.cart.update_total_price()
+
+@receiver(post_save, sender=Cart)
+def update_cart_total_on_cart_save(sender, instance, **kwargs):
+    instance.update_total_price()
