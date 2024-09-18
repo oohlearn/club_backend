@@ -1,6 +1,5 @@
 from django.db import models
 from tinymce.models import HTMLField
-from activity.models import Seat, SeatForNumberRow, TicketDiscountCode
 import uuid  # 生成隨機ID
 from shortuuidfield import ShortUUIDField
 from django.contrib.auth.models import User
@@ -11,8 +10,8 @@ from decouple import config
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
-
-
+from activity.models import Seat, SeatForNumberRow, TicketDiscountCode
+from user.models import Customer
 
 
 # 商品相關
@@ -90,37 +89,6 @@ class ProductCode(models.Model):
         verbose_name_plural = "商品優惠碼"
 
 
-class Customer(models.Model):
-    PAID_METHOD_CHOICE = [
-        ("credit_card", "信用卡"),
-        ("virtual_ATM", "ATM虛擬帳號"),
-        ("line_pay", "Line Pay"),
-        ("apple_pay", "Apple Pay"),
-    ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=200, verbose_name="姓名")
-    email = models.EmailField(verbose_name="電子郵件")
-    phone = models.CharField(max_length=20, verbose_name="電話")
-    postal_code = models.CharField(max_length=10, verbose_name="郵遞區號")
-    address_city = models.CharField(max_length=100, verbose_name="城市")
-    address_district = models.CharField(max_length=100, verbose_name="區域")
-    address = models.CharField(max_length=1000, verbose_name="詳細地址")
-    paid_method = models.CharField(max_length=20, blank=True, verbose_name="付費方式", choices=PAID_METHOD_CHOICE)  
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="創建時間", null=True)
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="更新時間", null=True)
-
-    class Meta:
-        verbose_name = "顧客"
-        verbose_name_plural = "顧客"
-
-    def __str__(self):
-        return self.name
-
-    def get_full_address(self):
-        return f"{self.postal_code} {self.address_city}{self.address_district}{self.address}"
-
-
 # TODO 優惠碼待修正
 class Cart(models.Model):
     STATE_CHOICES = [
@@ -157,7 +125,7 @@ class Cart(models.Model):
         total = self.calculate_total_price()
         Cart.objects.filter(pk=self.pk).update(total_price=total,
                                                need_deliver_paid=self.need_deliver_paid,
-                                               deliver_price=self.shipping_fee)
+                                               shipping_fee=self.shipping_fee)
         # 重新從數據庫加載更新後的值
         self.refresh_from_db()
 
@@ -188,7 +156,7 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name="cartItem", on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey(Product, related_name="product", on_delete=models.CASCADE, null=True, blank=True)
     size = models.CharField(max_length=20, verbose_name="尺寸或顏色", null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     seat = models.ForeignKey(Seat, on_delete=models.CASCADE, null=True, blank=True)

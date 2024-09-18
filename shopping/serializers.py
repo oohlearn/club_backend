@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Product, Photo, Size, ProductCode, Order, Cart, Customer, CartItem
+from .models import Product, Photo, Size, ProductCode, Order, Cart, CartItem
 from activity.serializers import TicketDiscountCodeSerializer, SeatFroNumberRowSerializer, SeatSerializer
+from user.serializers import CustomerSerialize
 
 
 # 商品
@@ -37,13 +38,6 @@ class ProductDiscountCodeSerializer(serializers.ModelSerializer):
         fields = ["name", "code", "discount", "is_valid", "end_date", "description"]
 
 
-# 購買者
-class CustomerSerialize(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
-        fields = '__all__'
-
-
 # 購物車
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(required=False)
@@ -51,13 +45,13 @@ class CartItemSerializer(serializers.ModelSerializer):
     seat_v2 = SeatFroNumberRowSerializer(required=False)
 
     class Meta:
-        model = Cart
+        model = CartItem
         fields = ["product", "size", "quantity",
                   "seat", "seat_v2"]
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cartItem = CartItemSerializer(required=False)
+    cartItem = CartItemSerializer(many=True)
     ticket_discount_code = TicketDiscountCodeSerializer(required=False)
     product_code = ProductDiscountCodeSerializer(required=False)
 
@@ -65,7 +59,7 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ["created_at", "cartItem", "customer", "ticket_discount_code",
                   "product_code", "total_price", "need_deliver_paid", "status",
-                  "deliver_price"]
+                  "shipping_fee"]
 
 
 # 訂單

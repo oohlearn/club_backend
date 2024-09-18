@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Product, Order, Cart, Customer, Photo, Size, ProductCode, CartItem
 from django.forms import TextInput
+
+from .models import Product, Order, Cart, Photo, Size, ProductCode, CartItem
 
 
 class PhotoInline(admin.TabularInline):
@@ -55,7 +56,3 @@ class ProductCodeAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "discount", "is_valid", "end_date")
     list_editable = ("is_valid",)
     search_fields = ['name', "code", "description"]
-
-
-# Register your models here.
-admin.site.register(Customer)
