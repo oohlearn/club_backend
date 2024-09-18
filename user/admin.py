@@ -1,14 +1,16 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Contact
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
+from django.contrib.auth.models import User
+
+from .models import Contact, UserProfile, Customer
 
 
-# Register your models here.
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'category', 'title', 'created_at', 'replied')
-    list_filter = ('category', 'replied')
     search_fields = ('name', 'title', 'content')
     readonly_fields = ('name', 'email', 'phone', 'category', 'title', 'content', 'created_at')
 
@@ -30,3 +32,18 @@ class ContactAdmin(admin.ModelAdmin):
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [obj.email]
         send_mail(subject, message, from_email, recipient_list)
+
+
+# 使用者
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (UserProfileInline,)
+
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+admin.site.register(Customer)
