@@ -42,6 +42,7 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline,)
+    list_filter = ()  # 顯式禁用過濾器
 
 
 admin.site.unregister(User)

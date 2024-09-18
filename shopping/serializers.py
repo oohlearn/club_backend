@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Product, Photo, Size, ProductCode, Order, Cart, CartItem
 from activity.serializers import TicketDiscountCodeSerializer, SeatFroNumberRowSerializer, SeatSerializer
-from user.serializers import CustomerSerialize
+from user.serializers import CustomerSerializer
 
 
 # 商品
@@ -65,7 +65,7 @@ class CartSerializer(serializers.ModelSerializer):
 # 訂單
 class OrderSerializer(serializers.ModelSerializer):
     orderItem = CartItemSerializer(many=True)
-    customer = CustomerSerialize()
+    customer = CustomerSerializer()
 
     class Meta:
         model = Order

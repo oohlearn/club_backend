@@ -10,7 +10,7 @@ import json
 from django.contrib.auth.models import User
 
 from .models import UserProfile
-from .serializers import ContactSerializer, CustomerSerialize
+from .serializers import ContactSerializer, CustomerSerializer
 
 
 # 意見回饋
@@ -31,7 +31,7 @@ def register_user(request):
             username = data.get('username')
             password = data.get('password')
             email = data.get('email')
-            nickname = data.get('nickname')
+            name = data.get('name')
 
             if not username or not password:
                 return JsonResponse({'error': '用戶名和密碼是必須的'}, status=400)
@@ -39,7 +39,7 @@ def register_user(request):
             if User.objects.filter(username=username).exists():
                 return JsonResponse({'error': '用戶名已存在/Email已被使用'}, status=400)
 
-            user = User.objects.create_user(username=username, password=password)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=name)
             UserProfile.objects.create(user=user, user_type='user')
 
             return JsonResponse({'message': '用戶註冊成功'}, status=201)
