@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status
 from django.http import JsonResponse
 import json
+from django.contrib.auth import authenticate, login
+
 
 from django.contrib.auth.models import User
 
@@ -43,6 +45,45 @@ def register_user(request):
             UserProfile.objects.create(user=user, user_type='user')
 
             return JsonResponse({'message': '用戶註冊成功'}, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': '無效的 JSON 數據'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': '只允許 POST 請求'}, status=405)
+
+
+@csrf_exempt
+def login_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+            password = data.get("password")
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return JsonResponse({"error": "無此帳號"}, status=400)
+
+            user = authenticate(username=user.username, password=password)
+
+            if user is not None:
+                login(request, user)
+                return JsonResponse({
+                    "token": "your_generated_token_here",  # 假設你有生成 token
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "name": user.first_name,
+                        "is_staff": user.is_staff,
+                        "is_active": user.is_active,
+                    },
+                    "message": "登入成功"
+                }, status=200)
+            else:
+                return JsonResponse({'error': '帳號或密碼錯誤'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'error': '無效的 JSON 數據'}, status=400)
         except Exception as e:
