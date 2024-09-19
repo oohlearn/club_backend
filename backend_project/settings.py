@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "user",
     'corsheaders',  # 讓前端跟API串
     "rest_framework",
+    "rest_framework.authtoken",
     'taggit',  # 使用tag的第三方套件,
     'tinymce'  # 較多功能的文字編輯器
 ]
@@ -75,6 +76,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 ROOT_URLCONF = 'backend_project.urls'
 

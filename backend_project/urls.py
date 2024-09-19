@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from shopping.views import ProductViewSet, OrderViewSet, ProductCodeViewSet, CartViewSet
-from user.views import create_contact, register_user, login_user
+from user.views import create_contact, register_user, login_user, validate_token, register_admin
 from activity.views import EventViewSet, ZoneViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
                                IndexStoryViewSet, TeacherViewSet,
@@ -42,8 +42,10 @@ urlpatterns = [
     path('activity/events/<int:event_id>/zones/<int:pk>/', ZoneViewSet.as_view({'patch': 'update_remain'}), name='zone-update-remain'),
     path('api/contact/', create_contact, name='create_contact'),
     path('api/user/register/', register_user, name='register_user'),
+    path('api/admin-register/', register_admin, name='register_admin'),
     path('api/user/login/', login_user, name='login_user'),
-    
+    path('api/validate-token/', validate_token, name='validate_token'),
+
 
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls
