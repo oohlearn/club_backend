@@ -125,13 +125,19 @@ class Seat(models.Model):
         ('#ADADAD', '灰(非賣票)')
     ]
 
+    SEAT_STATUS = [
+        ('on_sell', '未售出'),
+        ('sold', '已售出'),
+        ('padding', '保留中'),
+    ]
+
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
     seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
     area = models.CharField(max_length=10, verbose_name="座位號碼", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
-    is_sold = models.BooleanField(default=False, verbose_name="已售出")
+    is_sold = models.CharField(max_length=10, choices=SEAT_STATUS, verbose_name="已售出", default="on_sell")
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
     event_id = models.CharField(max_length=20, blank=True, null=True, editable=False)
 
@@ -276,6 +282,11 @@ class SeatForNumberRow(models.Model):
         ("28", "第28排"),
         ("29", "第29排"),
     ]
+    SEAT_STATUS = [
+        ('on_sell', '未售出'),
+        ('sold', '已售出'),
+        ('padding', '保留中'),
+    ]
     zone = models.ForeignKey(ZoneForNumberRow, on_delete=models.CASCADE,  related_name='seat', verbose_name="區域")
     row_num = models.CharField(max_length=10, choices=ROW_CHOICE, verbose_name="排數", )
     seat_num = models.CharField(max_length=10, verbose_name="座位號碼")
@@ -283,7 +294,7 @@ class SeatForNumberRow(models.Model):
     price = models.IntegerField(verbose_name="票價", blank=True, null=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICE, verbose_name="座位圖顯示顏色", blank=True)
     is_chair = models.BooleanField(default=False, verbose_name="輪椅席")
-    is_sold = models.BooleanField(default=False, verbose_name="已售出")
+    is_sold = models.CharField(max_length=10, choices=SEAT_STATUS, verbose_name="已售出", default="on_sell")    
     not_sell = models.BooleanField(default=False, verbose_name="非賣票")
     event_id = models.CharField(max_length=20, blank=True, null=True, editable=False)
 

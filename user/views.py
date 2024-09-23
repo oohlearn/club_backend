@@ -138,3 +138,5 @@ def validate_token(request):
         "is_staff": request.user.is_staff,
         "is_active": request.user.is_active,
     }})
+
+
