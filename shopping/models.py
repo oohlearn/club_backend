@@ -83,7 +83,7 @@ class ProductCode(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
+
     class Meta:
         verbose_name = "商品優惠碼"
         verbose_name_plural = "商品優惠碼"
@@ -102,7 +102,6 @@ class Cart(models.Model):
        ("refunded", "已退款"),
     ]
     created_at = models.DateTimeField(auto_now_add=True)
-    customer = models.ForeignKey(Customer, name="customer", verbose_name="訂購人資料", on_delete=models.CASCADE)
     ticket_discount_code = models.ForeignKey(TicketDiscountCode,
                                              related_name="ticket_discount_code",
                                              on_delete=models.SET_NULL, null=True, blank=True)
@@ -132,7 +131,7 @@ class Cart(models.Model):
     def calculate_total_price(self):
         products_total = sum(item.get_product_subtotal() for item in self.cartItem.all())
         tickets_total = sum(item.get_ticket_subtotal() for item in self.cartItem.all())
-        total = products_total + tickets_total + self.shipping_fee
+        total = products_total + tickets_total + int(self.shipping_fee)
 
         if self.product_code:
             products_total *= self.product_code.discount
@@ -151,7 +150,7 @@ class Cart(models.Model):
         return int(Decimal(total).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
 
     def __str__(self):
-        return f"{self.created_at.strftime('%Y-%m-%d %H:%M')} :  {self.customer.name}"
+        return f"{self.created_at.strftime('%Y-%m-%d %H:%M')}"
 
 
 class CartItem(models.Model):
@@ -205,6 +204,7 @@ class Order(models.Model):
     ]
     id = ShortUUIDField(primary_key=True, editable=False)
     cart = models.OneToOneField(Cart, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, name="customer", verbose_name="訂購人資料", on_delete=models.CASCADE,null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now, verbose_name="創建時間")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最後更新時間")
     status = models.CharField(max_length=20, choices=STATE_CHOICES, default="unpaid", verbose_name="訂單狀態")

@@ -1,11 +1,15 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status
+from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.pagination import PageNumberPagination
 
-from .serializers import ProductSerializer, OrderSerializer, ProductDiscountCodeSerializer, CartSerializer
-from .models import Product, Order, ProductCode, Cart
+from .serializers import (ProductSerializer, OrderSerializer,
+                          ProductDiscountCodeSerializer, CartSerializer)
+from .models import Product, Order, ProductCode, Cart, CartItem, Customer
+from django.db import transaction
 
 
 # 商品
@@ -108,3 +112,98 @@ class ProductCodeViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = ProductCode.objects.filter(id=id)
         return queryset
+
+
+class CreateCartView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        cart_items_data = request.data.get('cartItems', [])
+        ticket_items_data = request.data.get('ticketItems', [])
+
+        try:
+            # 创建一个没有客户信息的购物车
+            cart = Cart.objects.create()
+
+            for item_data in cart_items_data:
+                CartItem.objects.create(
+                    cart=cart,
+                    product_id=item_data['product'],
+                    size=item_data.get('size'),
+                    quantity=item_data['quantity']
+                )
+
+            for item_data in ticket_items_data:
+                CartItem.objects.create(
+                    cart=cart,
+                    seat_id=item_data.get('seat'),
+                    seat_v2_id=item_data.get('seat_v2')
+                )
+
+            cart.update_total_price()
+
+            return Response({
+                'success': True,
+                'cart_id': cart.id
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CartDetailView(RetrieveUpdateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'success': True,
+            'cart': serializer.data,
+        })
+
+
+class CreateOrderView(RetrieveUpdateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        # 创建或更新客户信息
+        customer_data = request.data.get('customer', {})
+        customer, created = Customer.objects.get_or_create(
+            email=customer_data.get('email'),
+            defaults=customer_data
+        )
+
+        # 更新购物车的客户信息
+        instance.customer = customer
+        instance.save()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # 创建订单
+        order = Order.objects.create(
+            cart=instance,
+            status='pending',
+            total_amount=instance.total_price
+        )
+        order_serializer = OrderSerializer(order)
+
+        return Response({
+            'success': True,
+            'cart': serializer.data,
+            'order': order_serializer.data
+        })

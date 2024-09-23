@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from shopping.views import ProductViewSet, OrderViewSet, ProductCodeViewSet, CartViewSet
+from shopping.views import (ProductViewSet, OrderViewSet,
+                            ProductCodeViewSet, CartViewSet,
+                            CreateCartView, CartDetailView)
 from user.views import create_contact, register_user, login_user, validate_token, register_admin
 from activity.views import EventViewSet, ZoneViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
@@ -45,6 +47,10 @@ urlpatterns = [
     path('api/admin-register/', register_admin, name='register_admin'),
     path('api/user/login/', login_user, name='login_user'),
     path('api/validate-token/', validate_token, name='validate_token'),
+    path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
+    path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),
+
+
 
 
 
