@@ -25,7 +25,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ["seat_num", "event_id", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
+        fields = ["seat_num", "event_id", "area", "price", "color", "not_sell", "status", "is_chair"]
 
 
 class ZoneSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class SeatFroNumberRowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SeatForNumberRow
-        fields = ["row_num", "seat_num", "event_id", "area", "price", "color", "not_sell", "is_sold", "is_chair"]
+        fields = ["row_num", "seat_num", "event_id", "area", "price", "color", "not_sell", "status", "is_chair"]
 
 
 class ZoneForNumberRowSerializer(serializers.ModelSerializer):

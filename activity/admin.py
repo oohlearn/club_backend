@@ -44,7 +44,7 @@ class ZoneInline(admin.TabularInline):
 class SeatsInline(admin.TabularInline):
     model = Seat
     extra = 30  # 初始显示的空白条目数量
-    fields = ['seat_num', "price", "color", "not_sell", "is_chair", "zone", "is_sold"]
+    fields = ['seat_num', "price", "color", "not_sell", "is_chair", "zone", "status"]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'seat_num':
@@ -87,7 +87,7 @@ class ZoneForNumInline(admin.TabularInline):
 class SeatsForNumInline(admin.TabularInline):
     model = SeatForNumberRow
     extra = 30  # 初始显示的空白条目数量
-    fields = ["row_num", 'seat_num', "price", "color", "not_sell", "is_chair", "zone", "is_sold"]
+    fields = ["row_num", 'seat_num', "price", "color", "not_sell", "is_chair", "zone", "status"]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'seat_num':
@@ -124,7 +124,7 @@ class VenueAdmin(admin.ModelAdmin):
 
 @admin.register(Seat)
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ['seat_num', "is_sold"]
+    list_display = ['seat_num', "status"]
     search_fields = ["seat_num"]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -158,7 +158,7 @@ class ZoneForNumberRowAdmin(admin.ModelAdmin):
 
 @admin.register(SeatForNumberRow)
 class SeatForNumberRowAdmin(admin.ModelAdmin):
-    list_display = ["row_num", 'seat_num', "is_sold"]
+    list_display = ["row_num", 'seat_num', "status"]
     search_fields = ["seat_num", "row_num"]
 
 
