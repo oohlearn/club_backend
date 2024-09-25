@@ -25,7 +25,7 @@ class SeatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Seat
-        fields = ["seat_num", "event_id", "area", "price", "color", "not_sell", "status", "is_chair"]
+        fields = ["id", "seat_num", "event_id", "area", "price", "color", "not_sell", "status", "is_chair"]
 
 
 class ZoneSerializer(serializers.ModelSerializer):
@@ -94,7 +94,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["id", "title", "date", "weekday", "time", "venue", "price_type", "poster",
-                  "description", "program", "player", "ticket_system_url",
+                  "description", "program", "player", "on_sell", "ticket_system_url",
                   "ticket_discount_code", "zone",
                   "zoneForNumberRow"]
 

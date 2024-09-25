@@ -48,12 +48,22 @@ class SeatViewSet(viewsets.ModelViewSet):
     serializer_class = SeatSerializer
     queryset = Seat.objects.all()
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
+    def get_queryset(self):
+        queryset = super().get_queryset()
         return queryset.extra(
             select={'letter': 'SUBSTR(seat_num, 1, 1)',
                     'number': 'CAST(SUBSTR(seat_num, 2) AS INTEGER)'}
         ).order_by('letter', 'number')
+
+    @action(detail=True, methods=['patch'])
+    def update_status(self, request, pk=None, event_id=None):
+        seat = self.get_object()
+        new_status = request.data.get('status')
+        if new_status in ['on_sell', 'padding']:
+            seat.status = new_status
+            seat.save()
+            return Response({'status': 'success', 'message': f'座位 {seat.seat_num} 狀態已更新為 {new_status}'})
+        return Response({'status': 'error', 'message': '無效的狀態'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ZoneViewSet(viewsets.ModelViewSet):

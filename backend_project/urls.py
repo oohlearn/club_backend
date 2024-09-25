@@ -4,7 +4,7 @@ from shopping.views import (ProductViewSet, OrderViewSet,
                             ProductCodeViewSet, CartViewSet,
                             CreateCartView, CartDetailView)
 from user.views import create_contact, register_user, login_user, validate_token, register_admin
-from activity.views import EventViewSet, ZoneViewSet
+from activity.views import EventViewSet, ZoneViewSet, SeatViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
                                IndexStoryViewSet, TeacherViewSet,
                                HomeContentViewSet,
@@ -49,9 +49,5 @@ urlpatterns = [
     path('api/validate-token/', validate_token, name='validate_token'),
     path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
     path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),
-
-
-
-
-
+    path('api/activity/<str:event_id>/seats/<int:pk>/', SeatViewSet.as_view({'patch': 'update_status'}), name='seat-update-status'),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls
