@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
 from .models import Event, Seat, Zone, ZoneForNumberRow
 from .serializers import EventSerializer, SeatSerializer, ZoneForNumberRowSerializer, ZoneSerializer
 # Create your views here.

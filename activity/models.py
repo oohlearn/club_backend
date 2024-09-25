@@ -62,7 +62,7 @@ class Event(models.Model):
     description = HTMLField(verbose_name="活動介紹", blank=True)
     ticket_system_url = models.CharField(max_length=1000, blank=True, null=True, verbose_name="外部售票系統網址")
     seat_image = models.ImageField(upload_to="Images/activities/", default="Image/None/Noimg.jpg", verbose_name="座位表")
-    on_sell = models.BooleanField(default=True)
+    on_sell = models.BooleanField(default=True, verbose_name="售票中")
     excel_file = models.FileField(upload_to="Excel_files", blank=True, null=True, verbose_name="Excel 檔案")
 
     def __str__(self):
