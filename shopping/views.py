@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
+
 
 from .serializers import (ProductSerializer, OrderSerializer,
                           ProductDiscountCodeSerializer, CartSerializer)
@@ -43,6 +45,32 @@ class ProductViewSet(viewsets.ModelViewSet):
             queryset = Product.objects.filter(id=id)
         return queryset
 
+    @action(detail=True, methods=['post'])
+    def update_pre_sold(self, request, pk=None):
+        product = self.get_object()
+        quantity = int(request.data.get('quantity', 0))
+        print(type(product.pre_sold_qty))
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=pk)
+            if product.available_quantity() >= quantity:
+                product.pre_sold_qty += quantity
+                product.save()
+                return Response({'status': 'success'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'status': 'error', 'message': '庫存不足'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def release_pre_sold(self, request, pk=None):
+        product = self.get_object()
+        quantity = int(request.data.get('quantity', 0))
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=pk)
+            product.pre_sold_qty = max(0, int(product.pre_sold_qty) - quantity)
+            product.save()
+            return Response({'status': 'success'}, status=status.HTTP_200_OK)
+
 
 # 購物車
 class CartViewSet(viewsets.ModelViewSet):
@@ -66,6 +94,32 @@ class CartViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Cart.objects.filter(id=id)
         return queryset
+
+    @transaction.atomic
+    def create(self, request):
+        product_id = request.data.get('product')
+        quantity = int(request.data.get('quantity', 1))
+        size = request.data.get("size")
+
+        product = Product.objects.select_for_update().get(id=product_id)
+
+        if product.available_quantity() >= quantity:
+            product.pre_sold_qty += quantity
+            product.save()
+
+            cart, created = Cart.objects.get_or_create(customer=request.user.customer)
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+                size=size,
+                defaults={'quantity': 0}
+            )
+            cart_item.quantity += quantity
+            cart_item.save()
+
+            return Response({'status': 'success'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'status': 'error', 'message': '庫存不足'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrderViewSet(viewsets.ModelViewSet):

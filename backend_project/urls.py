@@ -37,17 +37,32 @@ router.register(r'orders', OrderViewSet, basename="orders")
 router.register(r'productCode', ProductCodeViewSet, basename="productCode")
 
 urlpatterns = [
+    # 管理者
     path('admin/', admin.site.urls),
+    path('api/admin-register/', register_admin, name='register_admin'),
+    # 資訊
     path('api/information/', include(router.urls)),
-    path("api/shopping/", include(router.urls)),
+    # 使用者
+    path('api/user/register/', register_user, name='register_user'),
+    path('api/user/login/', login_user, name='login_user'),
+    # 售票活動
     path("api/activity/", include(router.urls)),
     path('activity/events/<int:event_id>/zones/<int:pk>/', ZoneViewSet.as_view({'patch': 'update_remain'}), name='zone-update-remain'),
-    path('api/contact/', create_contact, name='create_contact'),
-    path('api/user/register/', register_user, name='register_user'),
-    path('api/admin-register/', register_admin, name='register_admin'),
-    path('api/user/login/', login_user, name='login_user'),
-    path('api/validate-token/', validate_token, name='validate_token'),
-    path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
-    path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),
     path('api/activity/<str:event_id>/seats/<int:pk>/', SeatViewSet.as_view({'patch': 'update_status'}), name='seat-update-status'),
+    # 購物
+    path("api/shopping/", include(router.urls)),
+    path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
+    path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),    
+    # 檢查單一產品的庫存
+    path('api/shopping/products/<str:id>/', ProductViewSet.as_view({'get': 'retrieve'}), name='product-detail'),
+    # 更新預售數量
+    path('api/shopping/products/<str:id>/pre_sold/', ProductViewSet.as_view({'post': 'update_pre_sold'}), name='product-pre-sold'),
+    # 釋放預售數量
+    path('api/shopping/products/<str:id>/release_pre_sold/', ProductViewSet.as_view({'post': 'release_pre_sold'}), name='product-release-pre-sold'),
+    # 優惠碼檢查
+    path('api/shopping/productCode/', ProductCodeViewSet.as_view({'get': 'list'}), name='product-code'),
+    # 其他
+    path('api/contact/', create_contact, name='create_contact'),
+    path('api/validate-token/', validate_token, name='validate_token'),
+
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + router.urls

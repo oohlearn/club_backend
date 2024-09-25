@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+from celery import Celery
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +33,23 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+
+app = Celery('backend_project')
+
+# 載入 Celery 設置
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# 自動發現任務
+app.autodiscover_tasks()
+
+# 設置定時任務
+app.conf.beat_schedule = {
+    'clear-expired-cart-items': {
+        'task': 'your_app.tasks.clear_expired_cart_items',
+        'schedule': timedelta(hours=24),  # 每24小時執行一次
+    },
+}
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

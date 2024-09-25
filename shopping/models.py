@@ -45,8 +45,8 @@ class Product(models.Model):
     discount_price = models.IntegerField(verbose_name="特價價格", blank=True, null=True)
     category = models.CharField(max_length=500, verbose_name="商品種類", choices=CATEGORY_CHOICES, null=True)
     quantity = models.IntegerField(verbose_name="庫存總量", blank=True, null=True)
-    sold_qty = models.IntegerField(verbose_name="已售出總量", blank=True, null=True)
-    pre_sold_qty = models.IntegerField(verbose_name="暫時售出量", blank=True, null=True)
+    sold_qty = models.IntegerField(verbose_name="已售出總量", default=0)
+    pre_sold_qty = models.IntegerField(verbose_name="暫時售出量", default=0)
     description = HTMLField(verbose_name="商品敘述", blank=True, null=True)
     state_tag = models.CharField(max_length=100, blank=True, null=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
@@ -55,6 +55,9 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def available_quantity(self):
+        return self.quantity - self.pre_sold_qty
 
     class Meta:
         verbose_name = "商品"
@@ -160,6 +163,7 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     seat = models.ForeignKey(Seat, on_delete=models.CASCADE, null=True, blank=True)
     seat_v2 = models.ForeignKey(SeatForNumberRow, on_delete=models.CASCADE, null=True, blank=True)
+    added_time = models.DateTimeField(default=timezone.now)
 
     def get_product_subtotal(self):
         if self.product:
