@@ -6,11 +6,13 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 
 
 from .serializers import (ProductSerializer, OrderSerializer,
-                          ProductDiscountCodeSerializer, CartSerializer)
-from .models import Product, Order, ProductCode, Cart, CartItem, Customer
+                          ProductDiscountCodeSerializer, CartSerializer,
+                          SizeSerializer)
+from .models import Product, Order, ProductCode, Cart, CartItem, Customer, Size
 from django.db import transaction
 
 
@@ -20,6 +22,56 @@ class ProductListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
+
+
+class SizeViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = SizeSerializer
+
+    def get_queryset(self):
+        product_pk = self.kwargs.get('product_pk')
+        if product_pk:
+            product = Product.objects.filter(pk=product_pk).first()
+            if not product:
+                raise NotFound('Product not found')
+            return Size.objects.filter(product=product)
+        return Size.objects.all()
+
+    def perform_create(self, serializer):
+        product_pk = self.kwargs.get('product_pk')
+        product = Product.objects.filter(pk=product_pk).first()
+        if not product:
+            raise NotFound('Product not found')
+        serializer.save(product=product)
+
+    @action(detail=True, methods=['post'])
+    def update_pre_sold(self, request, id, pk=None):
+        try:
+            product = get_object_or_404(Product, id=id)
+            size = get_object_or_404(Size, pk=pk, product=product)
+            quantity = int(request.data.get('quantity', 0))
+
+            with transaction.atomic():
+                size = Size.objects.select_for_update().get(pk=pk)
+                if size.available_quantity() >= quantity:
+                    size.pre_sold_qty += quantity
+                    size.save()
+                    return Response({'status': 'success'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'status': 'error', 'message': '庫存不足'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def release_pre_sold(self, request, id, pk=None):
+        size = self.get_object()
+        quantity = int(request.data.get('quantity', 0))
+
+        with transaction.atomic():
+            size = Size.objects.select_for_update().get(pk=pk)
+            size.pre_sold_qty = max(0, size.pre_sold_qty - quantity)
+            size.save()
+            return Response({'status': 'success'}, status=status.HTTP_200_OK)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -44,32 +96,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Product.objects.filter(id=id)
         return queryset
-
-    @action(detail=True, methods=['post'])
-    def update_pre_sold(self, request, pk=None):
-        product = self.get_object()
-        quantity = int(request.data.get('quantity', 0))
-        print(type(product.pre_sold_qty))
-
-        with transaction.atomic():
-            product = Product.objects.select_for_update().get(pk=pk)
-            if product.available_quantity() >= quantity:
-                product.pre_sold_qty += quantity
-                product.save()
-                return Response({'status': 'success'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'status': 'error', 'message': '庫存不足'}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post'])
-    def release_pre_sold(self, request, pk=None):
-        product = self.get_object()
-        quantity = int(request.data.get('quantity', 0))
-
-        with transaction.atomic():
-            product = Product.objects.select_for_update().get(pk=pk)
-            product.pre_sold_qty = max(0, int(product.pre_sold_qty) - quantity)
-            product.save()
-            return Response({'status': 'success'}, status=status.HTTP_200_OK)
 
 
 # 購物車
@@ -99,19 +125,19 @@ class CartViewSet(viewsets.ModelViewSet):
     def create(self, request):
         product_id = request.data.get('product')
         quantity = int(request.data.get('quantity', 1))
-        size = request.data.get("size")
+        size_id = request.data.get("size")
 
-        product = Product.objects.select_for_update().get(id=product_id)
+        size = Size.objects.select_for_update().get(id=size_id)
 
-        if product.available_quantity() >= quantity:
-            product.pre_sold_qty += quantity
-            product.save()
+        if size.available_quantity() >= quantity:
+            size.pre_sold_qty += quantity
+            size.save()
 
             cart, created = Cart.objects.get_or_create(customer=request.user.customer)
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
-                product=product,
-                size=size,
+                product_id=product_id,
+                size_id=size_id,
                 defaults={'quantity': 0}
             )
             cart_item.quantity += quantity

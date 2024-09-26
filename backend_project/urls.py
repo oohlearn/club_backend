@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from shopping.views import (ProductViewSet, OrderViewSet,
                             ProductCodeViewSet, CartViewSet,
-                            CreateCartView, CartDetailView)
+                            CreateCartView, CartDetailView, SizeViewSet)
 from user.views import create_contact, register_user, login_user, validate_token, register_admin
 from activity.views import EventViewSet, ZoneViewSet, SeatViewSet
 from information.views import (VideoViewSet, AlbumViewSet, ArticleViewSet,
@@ -52,13 +52,22 @@ urlpatterns = [
     # 購物
     path("api/shopping/", include(router.urls)),
     path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
-    path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),    
-    # 檢查單一產品的庫存
-    path('api/shopping/products/<str:id>/', ProductViewSet.as_view({'get': 'retrieve'}), name='product-detail'),
-    # 更新預售數量
-    path('api/shopping/products/<str:id>/pre_sold/', ProductViewSet.as_view({'post': 'update_pre_sold'}), name='product-pre-sold'),
-    # 釋放預售數量
-    path('api/shopping/products/<str:id>/release_pre_sold/', ProductViewSet.as_view({'post': 'release_pre_sold'}), name='product-release-pre-sold'),
+    path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),
+    # 單一產品詳情
+    path('api/shopping/products/<str:id>', ProductViewSet.as_view({'get': 'retrieve'}), name='product-detail'),
+    # 獲取產品的所有尺寸
+    path('api/shopping/products/<str:id>/sizes/', SizeViewSet.as_view({'get': 'list'}), name='product-sizes-list'),
+
+    # 獲取產品的特定尺寸
+    path('api/shopping/products/<str:id>/sizes/<int:pk>/', SizeViewSet.as_view({'get': 'retrieve'}), name='product-size-detail'),
+
+    # 更新產品特定尺寸的預售數量
+    path('api/shopping/products/<str:id>/sizes/<int:pk>/pre_sold/',
+         SizeViewSet.as_view({'post': 'update_pre_sold'}), name='product-size-pre-sold'),
+
+    # 釋放產品特定尺寸的預售數量
+    path('api/shopping/products/<str:id>/sizes/<int:pk>/release_pre_sold/',
+         SizeViewSet.as_view({'post': 'release_pre_sold'}), name='product-size-release-pre-sold'),
     # 優惠碼檢查
     path('api/shopping/productCode/', ProductCodeViewSet.as_view({'get': 'list'}), name='product-code'),
     # 其他

@@ -17,13 +17,26 @@ from user.models import Customer
 # 商品相關
 class Size(models.Model):
     GROUP_CHOICE = [
+        ("單一尺寸", "單一尺寸"),
         ("大人、成年人", "大人、成年人"),
-        ("小孩", "小孩")
+        ("小孩", "小孩"),
     ]
     product = models.ForeignKey('Product', related_name='size_list', on_delete=models.CASCADE, verbose_name="尺寸列表")
-    size = models.CharField(max_length=100, verbose_name="尺寸或顏色")
+    size = models.CharField(max_length=100, verbose_name="尺寸或顏色", blank=True)
     group = models.CharField(max_length=50, verbose_name="適用族群", blank=True, null=True, choices=GROUP_CHOICE)
     description = models.CharField(max_length=255, verbose_name="備註，例：尺寸描述", blank=True, null=True)
+    quantity = models.IntegerField(verbose_name="庫存總量", default=50)
+    sold_qty = models.IntegerField(verbose_name="已售出總量", default=0)
+    pre_sold_qty = models.IntegerField(verbose_name="暫時售出量", default=0)
+
+    def save(self, *args, **kwargs):
+        if self.group == "單一尺寸":
+            self.size = "單一尺寸"
+        super().save(*args, **kwargs)
+
+    def available_quantity(self):
+        return self.quantity - self.pre_sold_qty
+
 
 
 # TODO 處理暫售量
@@ -44,9 +57,6 @@ class Product(models.Model):
     price = models.IntegerField(verbose_name="原始價格")
     discount_price = models.IntegerField(verbose_name="特價價格", blank=True, null=True)
     category = models.CharField(max_length=500, verbose_name="商品種類", choices=CATEGORY_CHOICES, null=True)
-    quantity = models.IntegerField(verbose_name="庫存總量", blank=True, null=True)
-    sold_qty = models.IntegerField(verbose_name="已售出總量", default=0)
-    pre_sold_qty = models.IntegerField(verbose_name="暫時售出量", default=0)
     description = HTMLField(verbose_name="商品敘述", blank=True, null=True)
     state_tag = models.CharField(max_length=100, blank=True, null=True, verbose_name="商品標籤",help_text="字樣會顯示在圖片上", choices=STATE_CHOICES)  # 顯示在圖片上的特殊標記，特價中、缺貨
     on_sell = models.BooleanField(default=True, verbose_name="販售中", help_text="若下架該商品，取消勾選")
@@ -56,8 +66,7 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def available_quantity(self):
-        return self.quantity - self.pre_sold_qty
+
 
     class Meta:
         verbose_name = "商品"

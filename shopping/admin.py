@@ -18,7 +18,7 @@ class PhotoInline(admin.TabularInline):
 class SizeInline(admin.TabularInline):
     model = Size
     extra = 5
-    fields = ["group", 'size', 'description']
+    fields = ["group", 'size', 'description', "quantity", "sold_qty", "pre_sold_qty",]
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'size':
@@ -29,9 +29,19 @@ class SizeInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [PhotoInline, SizeInline]
-    # list_editable = ("price", "discount_price", "state_tag", "on_sell", "on_discount")
-    # list_display = ("title", "price", "discount_price", "state_tag", "on_sell", "on_discount")    
-    search_fields = ['title', 'description']  # 添加搜索功能
+    search_fields = ['title', 'description']
+
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
+    list_display = ("product", "size", "group", "quantity", "sold_qty", "pre_sold_qty", "available_quantity")
+    list_filter = ()
+    search_fields = ['product__name', 'size', 'group']
+    # product__name 指的是 ForeignKey 對應的 Product 模型的 name 欄位
+
+    def available_quantity(self, obj):
+        return obj.available_quantity()
+    available_quantity.short_description = "可用數量"
 
 
 @admin.register(Order)

@@ -6,9 +6,15 @@ from user.serializers import CustomerSerializer
 
 # 商品
 class SizeSerializer(serializers.ModelSerializer):
+    available_quantity = serializers.SerializerMethodField()
+
     class Meta:
         model = Size
-        fields = ['size', "group", 'description']
+        fields = ["id", 'size', "group", 'description', "quantity", "sold_qty",
+                  "pre_sold_qty", "available_quantity"]
+
+    def get_available_quantity(self, obj):
+        return obj.available_quantity()
 
 
 class PhotoSerializer(serializers.ModelSerializer):
@@ -24,8 +30,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "discount_price", "category",
-                  "quantity", "sold_qty",  "pre_sold_qty", "on_sell",
+        fields = ["id", "name", "price", "discount_price", "category", "on_sell",
                   "on_discount", "state_tag", "description",
                   "index_image", "photos", "size_list"]
 
