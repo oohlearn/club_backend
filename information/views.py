@@ -11,7 +11,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 from .models import (Video, IndexStory, Album, Article, Experience, Conductor,
-                     Teacher, Introduction, HomeContent, Photo)
+                     Teacher, Introduction, HomeContent)
 from .serializers import (VideoSerializer,
                           IndexStorySerializer, AlbumSerializer, HomeContentSerializer,
                           ArticleSerializer, ExperienceSerializer,
@@ -56,14 +56,13 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             data = serializer.data
             formatted_data = [{"title": item["title"], **item} for item in data]
             return self.get_paginated_response(formatted_data)
-
-        serializer = self.get_serializer(queryset, many=True)
 
         data = serializer.data
         formatted_data = [{"title": item["title"], **item} for item in data]
@@ -91,7 +90,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
 # 相簿
 class AlbumListPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 9
     page_size_query_param = "page_size"
     max_page_size = 100
 
@@ -99,21 +98,31 @@ class AlbumListPagination(PageNumberPagination):
 class AlbumViewSet(viewsets.ModelViewSet):
     serializer_class = AlbumSerializer
     parser_classes = (MultiPartParser, FormParser)
-    pagination = AlbumListPagination
+    pagination_class = AlbumListPagination
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        print("Queryset total:", queryset.count())
 
+        serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            print("Page data count:", len(page))
+            serializer = self.get_serializer(page, many=True)
+            data = serializer.data
+            formatted_data = [{"title": item["title"], **item} for item in data]
+            return self.get_paginated_response(formatted_data)
         data = serializer.data
         formatted_data = [{"title": item["title"], **item} for item in data]
 
         return Response({
-            "albums": formatted_data
+            "albums": formatted_data,
+            "total": queryset.count()
         }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        images = request.FILES.getlist('images', [])
+        images = request.FILES.getlist('images')
         album_data = request.data
 
         album_serializer = self.get_serializer(data=album_data)
@@ -121,21 +130,21 @@ class AlbumViewSet(viewsets.ModelViewSet):
         album = album_serializer.save()
 
         for image in images:
-            Photo.objects.create(album=album, image=image)
+            Album.objects.create(album=album, image=image)
 
         return Response(album_serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        images = request.FILES.getlist('images', [])
+        images = request.FILES.getlist('images')
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         if images:
-            instance.photos.all().delete()  # 刪除舊圖片
+            instance.images.all().delete()  # 刪除舊圖片
             for image in images:
-                Photo.objects.create(album=instance, image=image)
+                Album.objects.create(album=instance, image=image)
 
         return Response(serializer.data)
 
@@ -145,6 +154,14 @@ class AlbumViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Album.objects.filter(id=id)
         return queryset
+
+    def get_paginated_response(self, data):
+        return Response({
+            'albums': data,
+            'total': self.paginator.page.paginator.count,
+            'page': self.paginator.page.number,
+            'page_size': self.paginator.page.paginator.per_page
+        })
 
 
 # 老師

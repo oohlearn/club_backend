@@ -60,17 +60,6 @@ class Article(models.Model):
     tags_input = models.CharField(max_length=300, blank=True, null=True, verbose_name="Hashtag 標記")
     tags = models.ManyToManyField(Tag, related_name="articles", blank=True)
 
-    # def save(self, *args, **kwargs):
-    #     # 在保存之前處理 tags_input
-    #     if self.tags_input:
-    #         tag_names = [name.strip() for name in self.tags_input.split(',')]
-    #         tags = []
-    #         for name in tag_names:
-    #             tag, created = Tag.objects.get_or_create(name=name)
-    #             tags.append(tag)
-    #         self.tags.set(tags)
-    #     super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "文章"  # 自定義單數形式的名稱
         verbose_name_plural = "文章列表"  # 自定義複數形式的名稱
@@ -201,13 +190,9 @@ class Conductor(models.Model):
 # TODO 待解決一次放入多張照片
 # TODO tags
 class Photo(models.Model):
-    id = ShortUUIDField(primary_key=True, editable=False)
     album = models.ForeignKey('Album', related_name='photos', on_delete=models.CASCADE, verbose_name="相簿")
     image = models.ImageField(verbose_name="照片", upload_to="Images/albums/", blank=True)
-    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True, null=True,)
-
-    def __str__(self):
-        return self.description
+    description = models.CharField(max_length=255, verbose_name="照片描述", blank=True, null=True)
 
 
 class Album(models.Model):
