@@ -20,7 +20,7 @@ from .serializers import (VideoSerializer,
 
 # 影片
 class VideoListPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 5
     page_size_query_param = "page_size"
     max_page_size = 100
 
@@ -33,13 +33,29 @@ class VideoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
 
         data = serializer.data
         formatted_data = [{"title": item["title"], **item} for item in data]
 
+        if page is not None:
+            print("Page data count:", len(page))
+            serializer = self.get_serializer(page, many=True)
+            data = serializer.data
+            formatted_data = [{"title": item["title"], **item} for item in data]
+            return self.get_paginated_response(formatted_data)
         return Response({
-            "videos": formatted_data
+            "videos": formatted_data,
+            "total": queryset.count()
         }, status=status.HTTP_200_OK)
+
+    def get_paginated_response(self, data):
+        return Response({
+            'videos': data,
+            'total': self.paginator.page.paginator.count,
+            'page': self.paginator.page.number,
+            'page_size': self.paginator.page.paginator.per_page
+        })
 
 
 # 文章
