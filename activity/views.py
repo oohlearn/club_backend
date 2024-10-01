@@ -26,12 +26,20 @@ class EventViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
 
         data = serializer.data
         formatted_data = [{"title": item["title"], **item} for item in data]
 
+        if page is not None:
+            print("Page data count:", len(page))
+            serializer = self.get_serializer(page, many=True)
+            data = serializer.data
+            formatted_data = [{"title": item["title"], **item} for item in data]
+            return self.get_paginated_response(formatted_data)
         return Response({
-            "events": formatted_data
+            "events": formatted_data,
+            "total": queryset.count()
         }, status=status.HTTP_200_OK)
 
     def get_queryset(self):
@@ -40,6 +48,14 @@ class EventViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Event.objects.filter(id=id)
         return queryset
+
+    def get_paginated_response(self, data):
+        return Response({
+            'events': data,
+            'total': self.paginator.page.paginator.count,
+            'page': self.paginator.page.number,
+            'page_size': self.paginator.page.paginator.per_page
+        })
 
 
 # TODO 座位在API的排序順序
