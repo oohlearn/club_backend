@@ -1,9 +1,12 @@
 from django.shortcuts import render
+from django.db.models import Q
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
+from datetime import datetime
+
 
 
 
@@ -93,6 +96,38 @@ class ArticleViewSet(viewsets.ModelViewSet):
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = Article.objects.filter(id=id)
+
+        # 處理搜索
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(content__icontains=search)
+            )
+
+        # 處理日期過濾
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__range=[start_date, end_date])
+            except ValueError:
+                # 如果日期格式不正確，我們可以選擇忽略這個過濾條件
+                pass
+        elif start_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__gte=start_date)
+            except ValueError:
+                pass
+        elif end_date:
+            try:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__lte=end_date)
+            except ValueError:
+                pass
         return queryset
 
     def get_paginated_response(self, data):
