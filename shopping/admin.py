@@ -30,6 +30,9 @@ class SizeInline(admin.TabularInline):
 class ProductAdmin(admin.ModelAdmin):
     inlines = [PhotoInline, SizeInline]
     search_fields = ['title', 'description']
+    list_display = ("name", "price", "discount_price", "state_tag", "on_sell",
+                    "on_discount")
+
 
 
 @admin.register(Size)
