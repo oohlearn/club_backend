@@ -19,7 +19,7 @@ from django.db import transaction
 # 商品
 # 分頁
 class ProductListPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 6
     page_size_query_param = "page_size"
     max_page_size = 100
 
@@ -27,6 +27,7 @@ class ProductListPagination(PageNumberPagination):
 class SizeViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = SizeSerializer
+    pagination_class = ProductListPagination
 
     def get_queryset(self):
         product_pk = self.kwargs.get('product_pk')
@@ -77,17 +78,26 @@ class SizeViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    pagination = ProductListPagination
+    pagination_class = ProductListPagination
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
 
+        page = self.paginate_queryset(queryset)
+
         data = serializer.data
         formatted_data = [{"name": item["name"], **item} for item in data]
 
+        if page is not None:
+            print("Page data count:", len(page))
+            serializer = self.get_serializer(page, many=True)
+            data = serializer.data
+            formatted_data = [{"name": item["name"], **item} for item in data]
+            return self.get_paginated_response(formatted_data)
         return Response({
-            "products": formatted_data
+            "products": formatted_data,
+            "total": queryset.count()
         }, status=status.HTTP_200_OK)
 
     def get_queryset(self):
@@ -96,6 +106,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         if id is not None:
             queryset = Product.objects.filter(id=id)
         return queryset
+
+    def get_paginated_response(self, data):
+        return Response({
+            'products': data,
+            'total': self.paginator.page.paginator.count,
+            'page': self.paginator.page.number,
+            'page_size': self.paginator.page.paginator.per_page
+        })
 
 
 # 購物車
