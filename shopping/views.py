@@ -8,6 +8,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 
+from django.db.models import Q
+
 
 from .serializers import (ProductSerializer, OrderSerializer,
                           ProductDiscountCodeSerializer, CartSerializer,
@@ -103,8 +105,21 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Product.objects.all()
         id = self.request.query_params.get('id')
+
         if id is not None:
             queryset = Product.objects.filter(id=id)
+
+        # 處理搜索
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+            )
+
+        # 類別篩選
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
         return queryset
 
     def get_paginated_response(self, data):
@@ -114,6 +129,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             'page': self.paginator.page.number,
             'page_size': self.paginator.page.paginator.per_page
         })
+
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        categories = Product.objects.values_list('category', flat=True).distinct()
+        return Response(list(categories))
 
 
 # 購物車
