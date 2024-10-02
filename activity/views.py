@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.db.models import Q
+
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -8,7 +10,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Event, Seat, Zone, ZoneForNumberRow
 from .serializers import EventSerializer, SeatSerializer, ZoneForNumberRowSerializer, ZoneSerializer
-# Create your views here.
+
+from datetime import datetime, time
+from django.utils.timezone import make_aware
 
 
 # 活動
@@ -47,6 +51,44 @@ class EventViewSet(viewsets.ModelViewSet):
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = Event.objects.filter(id=id)
+
+        # 處理搜索
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(description__icontains=search)
+            )
+
+        # 處理日期過濾
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                start_datetime = make_aware(datetime.combine(start_date, time.min))
+                end_datetime = make_aware(datetime.combine(end_date, time.max))
+                queryset = queryset.filter(date__range=[start_datetime, end_datetime])
+            except ValueError:
+                # 如果日期格式不正確，我們可以選擇忽略這個過濾條件
+                pass
+        elif start_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                start_datetime = make_aware(datetime.combine(start_date, time.min))
+
+                queryset = queryset.filter(date__gte=start_datetime)
+            except ValueError:
+                pass
+        elif end_date:
+            try:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                end_datetime = make_aware(datetime.combine(end_date, time.max))
+
+                queryset = queryset.filter(date__lte=end_datetime)
+            except ValueError:
+                pass
         return queryset
 
     def get_paginated_response(self, data):
