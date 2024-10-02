@@ -54,7 +54,7 @@ urlpatterns = [
     path('api/create-cart/', CreateCartView.as_view(), name='create_cart'),
     path('api/cart/<str:pk>/', CartDetailView.as_view(), name='cart_detail'),
     # 單一產品詳情
-    path('api/shopping/products/<str:id>', ProductViewSet.as_view({'get': 'retrieve'}), name='product-detail'),
+    path('api/shopping/products/<str:pk>', ProductViewSet.as_view({'get': 'retrieve'}), name='product-detail'),
     # 獲取產品的所有尺寸
     path('api/shopping/products/<str:id>/sizes/', SizeViewSet.as_view({'get': 'list'}), name='product-sizes-list'),
 
